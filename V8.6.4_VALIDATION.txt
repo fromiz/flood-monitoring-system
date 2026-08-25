@@ -1,0 +1,21 @@
+V8.6.4 GPU FULL SAFE MERGE - validation summary
+
+Validated in packaging environment:
+- Python compileall: PASS
+- app/static/app.js node --check: PASS
+- targeted regression tests: 11 passed
+- vehicle_flood_pipeline.py: byte-identical to V8.6.3 stable base
+- dem_terrain.py: byte-identical to V8.6.3 stable base
+- requirements.txt: byte-identical to V8.6.3 stable base
+- .env vehicle raw confidence remains 0.001
+- .env GPU missed-track remains 0
+- .env KMA/APIHub/VWorld keys remain blank
+- live-active background opportunistic GPU changes NOT merged
+- team DB/cache/__pycache__ NOT imported
+
+Model SHA-256:
+best.pt       c82d3cfe3eafa5355245053c32b4e87349fd3962b7f286a742e48c42fd5bca2e
+tire_level.pt 59491c91e16f8c6852b4afae593a7b088b31fe01c242229e975482433c8453f1
+car_flood_cls.pt 6d29f7ac87a329d5797db42aff3e9295ca877a38bdb55f433550beb09ab4b7dd
+
+No real RTX/CUDA/live Pohang inference was executed in the packaging environment.

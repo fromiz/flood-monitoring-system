@@ -1,0 +1,15 @@
+V8.5.3 - CCTV latency, tracking and strict majority correction
+
+- Removed the validation-video minimum-stage override from live consensus.
+  The most frequent classified vehicle stage is now always authoritative;
+  ties select the lower stage, so Lev0 wins conservative ties as well.
+- Removed duplicate FPS pacing from network/HLS capture. Local files remain
+  source-paced, while live streams publish each newly received frame at once.
+- Reduced CPU render/output pressure and extended the tracking history so AI
+  boxes can be projected through longer inference runs without falling behind.
+- Upgraded distant-vehicle rescue detection to three overlapping vertical
+  tiles with a slightly lower confidence threshold.
+- CCTV automatic arrangement now has a 590x620 maximum and never enlarges an
+  individual window. A single arranged window is centered at its normal size.
+- The CCTV history graph remains flood-stage-only. Rain, sewer and river values
+  are shown exclusively in the integrated table and summary row.

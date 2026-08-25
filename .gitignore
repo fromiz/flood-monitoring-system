@@ -1,0 +1,21 @@
+# Local secrets and runtime data
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.venv/
+data/*.db
+recordings/
+
+# ===== 모델 가중치 =====
+weights/*.pt
+weights/*.pth
+
+# ===== 지도 타일 캐시 =====
+data/dem/
+data/terrain_context/
+data/vworld_tiles/
+
+# ===== Jupyter 캐시 =====
+.ipynb_checkpoints/

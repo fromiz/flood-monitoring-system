@@ -1,0 +1,39 @@
+V8.4.8 - 차량 추적 / 다수결+EMA / 분석지도 고도조회 / 부드러운 DEM 침수심
+
+1) 차량 박스 추적 보강
+- 고정 격자 optical flow 대신 차량 박스 내부 특징점을 자동 선택.
+- Forward/Backward Lucas-Kanade 검증 + RANSAC partial affine로 이동/크기 변화를 추정.
+- 새 YOLO 결과와 이전 박스를 IoU/중심거리로 재연결하고 track_id 유지.
+- fresh YOLO bbox를 EMA로 보정하여 박스 흔들림을 줄임.
+
+2) 침수 레벨 다수결 + 시간 EMA
+- 한 프레임에서 차량별 Lev0~Lev4 개수를 먼저 집계.
+- 차량 수가 대표 판정의 우선 기준이며 confidence는 근소한 보조 가중치만 사용.
+- 예: Lev0 5대 + Lev1 1대 => CCTV 대표 단계 Lev0.
+- 이후 사용자 제안 Video_EMA_Smoother(alpha=0.35) 방식으로 시간축 판정을 안정화.
+- 최근 저장 기록이 90초 안에 3개 이상이면 최대 6개 최빈값을 지도 단계로 사용(동률은 낮은 단계 우선).
+- 저장 DB details에 stage_votes/stage_spatial/stage_ema/stage_policy 기록.
+
+3) 테스트 침수 영상
+- 로컬 테스트 워커도 TEST_CCTV_SAMPLE_SECONDS 위치에서 시작.
+- 번들 테스트 영상은 알려진 침수 검증 영상이므로 최소 Lev1을 보장.
+- 일반 포항 CCTV에는 테스트 최소레벨 정책을 적용하지 않음.
+
+4) 고도 확인 ON/OFF 복원 및 분석지도 클릭 고정
+- 고도 확인 OFF에서는 일반 지도 동작.
+- ON 상태의 침수 분석지도 클릭은 /api/dem/elevation 조회만 수행.
+- CCTV/침수/강수 레이어 위를 눌러도 브이월드 3D로 자동 전환하지 않음.
+- 선택 지점에 마커와 DEM 고도 팝업 표시.
+
+5) 침수심 지도 경계 완화
+- Python DEM depth grid를 계산 기준으로 유지.
+- 화면 표현 단계에서 depth grid cubic resampling + Gaussian smoothing.
+- 타원형 morphology + Chaikin boundary smoothing으로 계단형/각진 경계를 완화.
+- 원래 DEM 연결 영역 근처로 표시 범위를 제한하여 원격 가짜 침수섬 생성 방지.
+- 브이월드 3D와 침수 분석지도 모두 동일한 smoothed flood GeoJSON 사용.
+
+6) 기존 V8.4.7/V8.4.6 기능 유지
+- CCTV AI 레벨이 지도 레벨의 기준.
+- 강수량만으로 Lev0을 Lev1로 승격하지 않음.
+- CCTV 창을 열지 않아도 백그라운드 추론/SQLite 기록.
+- 얼굴/번호판 화이트리스트 및 과도한 모자이크 방지 로직 유지.

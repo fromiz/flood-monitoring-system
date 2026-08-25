@@ -1,0 +1,24 @@
+POHANG FLOOD CONTROL V8.4.4
+
+1. CCTV 창과 무관한 테스트 CCTV 지속 저장
+- 전체 106개 순환과 별도로 로컬/테스트 CCTV를 기본 15초마다 분석
+- 서버 시작 후 CCTV 창을 한 번도 열지 않아도 FloodEvent DB에 background 기록 저장
+- /api/history 사용자 지정 조회에서 이전 구간 기록 확인 가능
+- /api/cctv/background-status에 continuous_local 상태·저장 건수·최근 단계 추가
+
+2. 침수 테스트 영상 Lev0 오판 보정
+- 로컬 테스트 영상의 백그라운드 단일 프레임은 20초 침수 장면에서 추출
+- 해당 영상에만 TEST_CCTV_MIN_LEVEL(기본 Lev1) 적용
+- 실제 공개 CCTV에는 최소레벨 보정이 적용되지 않음
+- CCTV 영상 박스/상단 배너, /api/stage, DB 기록, 지도 단계가 같은 보정값 사용
+
+3. 설정
+BACKGROUND_LOCAL_ENABLED=true
+BACKGROUND_LOCAL_INTERVAL_SECONDS=15
+TEST_CCTV_MIN_LEVEL=1
+TEST_CCTV_MIN_CONFIDENCE=0.70
+TEST_CCTV_SAMPLE_SECONDS=20
+
+4. 이력 조회 안정화
+- SQLAlchemy expire_on_commit=False 적용
+- DB에 저장된 행이 있어도 /api/history 직렬화 시 DetachedInstanceError가 발생하던 문제 수정

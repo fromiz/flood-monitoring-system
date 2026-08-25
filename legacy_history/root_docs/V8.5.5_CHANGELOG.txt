@@ -1,0 +1,17 @@
+V8.5.5 - live CCTV priority and authoritative flood map
+
+Root causes confirmed from the 21:48 recording:
+- best.pt is a valid seven-class vehicle detector (car/bus/truck classes).
+- The first boxes arrived about 25 seconds late because foreground inference,
+  four background scan workers over 106 feeds, privacy inference, and recently
+  closed CCTV workers all competed for the same global model lock.
+- The DEM endpoint could retain an old DB stage or manufacture Lev3 whenever
+  the UI sent test=true, producing a large polygon while the live CCTV was Lev0.
+
+Corrections:
+- Pause/cancel background CCTV scanning while any live CCTV client is open.
+- Reduce background concurrency from four to one for CPU-safe operation.
+- Stop closed-camera workers after two seconds instead of twenty.
+- Prefer an active worker's <=15-second stage over stale database history.
+- Remove both forced-test Lev3 branches. Test controls no longer manufacture
+  flood depth; only an actual AI stage of Lev1 or higher seeds the DEM surface.

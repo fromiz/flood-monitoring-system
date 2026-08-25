@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>포항 브이월드 9요소 지형 CCTV·침수심 V8.6.4</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      /* 브이월드 하단 안내 영역 높이 */
+      --vworld-bottom-safe: 20px;
+      --panel: rgba(3, 16, 26, .93);
+      --level0-color: #42c889;
+      --level1-color: #315cff;
+      --level2-color: #7136d9;
+      --level3-color: #bd2caf;
+      --level4-color: #ff4298;
+      --border: #35627c;
+      --text: #eef9ff;
+      --muted: #9bb8c9;
+      --ok: #62e0ad;
+      --warn: #ffd066;
+      --error: #ff7b93;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body,
+    #vmap {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #06121e;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+    }
+
+    #vmap {
+      position: absolute;
+      inset: 0
+    }
+
+    #flood-svg-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 138;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .flood-screen-polygon {
+      stroke: rgba(255, 255, 255, .72);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .25));
+    }
+
+    #camera-dom-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 145;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .camera-map-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--marker-color, #42c889);
+      box-shadow:
+        0 0 0 3px rgba(0, 0, 0, .28),
+        0 3px 12px rgba(0, 0, 0, .42);
+      color: #06111c;
+      cursor: pointer;
+      pointer-events: auto;
+      transform: translate(-50%, -100%);
+      transition: width .12s, height .12s;
+    }
+
+    .camera-map-marker.active {
+      width: 28px;
+      height: 28px;
+      animation: marker-pulse 1.4s infinite;
+    }
+
+    .camera-map-marker:hover,
+    .camera-map-marker:focus-visible {
+      z-index: 30;
+      width: 32px;
+      height: 32px;
+      outline: none;
+    }
+
+    .camera-map-marker::after {
+      content: attr(data-level);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    @keyframes marker-pulse {
+      50% {
+        box-shadow:
+          0 0 0 9px rgba(255, 255, 255, .16),
+          0 3px 12px rgba(0, 0, 0, .42)
+      }
+    }
+
+    .event-focus-marker {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 190;
+      display: none;
+      align-items: center;
+      gap: 7px;
+      pointer-events: none;
+      transform: translate(-17px, -100%);
+    }
+
+    .event-focus-marker i {
+      position: relative;
+      display: block;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border: 4px solid #fff;
+      border-radius: 50% 50% 50% 0;
+      background: var(--focus-color, #49a7ff);
+      box-shadow:
+        0 0 0 7px rgba(73, 167, 255, .20),
+        0 5px 16px rgba(0, 0, 0, .45);
+      transform: rotate(-45deg);
+      animation: event-focus-pulse 1.05s infinite;
+    }
+
+    .event-focus-marker i::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #07121c;
+      transform: translate(-50%, -50%);
+    }
+
+    .event-focus-marker span {
+      max-width: 260px;
+      padding: 7px 10px;
+      border: 1px solid #69d9ff;
+      border-radius: 8px;
+      background: rgba(3, 18, 29, .95);
+      color: #effbff;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, .35);
+    }
+
+    @keyframes event-focus-pulse {
+      50% {
+        box-shadow:
+          0 0 0 14px rgba(73, 167, 255, .08),
+          0 5px 16px rgba(0, 0, 0, .45);
+      }
+    }
+
+    .toolbar {
+      position: absolute;
+      z-index: 220;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      max-width: calc(100% - 95px);
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(7px);
+    }
+
+    button {
+      border: 1px solid #436c84;
+      border-radius: 7px;
+      padding: 7px 10px;
+      background: #103049;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: #67dcff;
+      background: #1e678d;
+    }
+
+    button.error {
+      border-color: #ff738b;
+      background: #682132;
+    }
+
+    #debug-badge {
+      padding: 6px 9px;
+      border: 1px solid #3c6078;
+      border-radius: 999px;
+      background: #071b2a;
+      color: #9fc7dc;
+      font-size: 10px;
+    }
+
+    #debug-badge.ok {
+      color: #65e0ad;
+      border-color: #397c68
+    }
+
+    #debug-badge.warn {
+      color: #ffd066;
+      border-color: #806a32
+    }
+
+    #debug-badge.error {
+      color: #ff8ca0;
+      border-color: #91384d
+    }
+
+    .status {
+      position: absolute;
+      z-index: 210;
+      left: 12px;
+      bottom: calc(var(--vworld-bottom-safe) + 12px);
+      max-width: calc(100% - 310px);
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .status.ok {
+      color: var(--ok);
+      border-color: #397c68
+    }
+
+    .status.warn {
+      color: var(--warn);
+      border-color: #806a32
+    }
+
+    .status.error {
+      color: var(--error);
+      border-color: #91384d
+    }
+
+    .legend {
+      position: absolute;
+      z-index: 215;
+      right: 14px;
+      bottom: calc(var(--vworld-bottom-safe) + 14px);
+      width: 260px;
+      padding: 12px;
+      border: 1px solid #40647c;
+      border-radius: 10px;
+      background: rgba(3, 15, 24, .95);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .28);
+    }
+
+    .legend header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .legend h3 {
+      margin: 0;
+      font-size: 13px
+    }
+
+    .legend header span {
+      color: #70dcff;
+      font-size: 10px;
+      text-align: right;
+    }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 17px 42px 1fr;
+      align-items: center;
+      gap: 7px;
+      min-height: 24px;
+      color: #d4e8f2;
+      font-size: 10px;
+    }
+
+    .legend-row i {
+      width: 15px;
+      height: 15px;
+      border: 1px solid rgba(255, 255, 255, .65);
+      border-radius: 3px;
+    }
+
+    #layer-summary {
+      display: block;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(100, 151, 181, .25);
+      color: #68dfad;
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    #error-summary {
+      display: block;
+      margin-top: 5px;
+      color: #ffd066;
+      font-size: 8px;
+      line-height: 1.35;
+    }
+
+    .legend-note {
+      display: block;
+      margin-top: 5px;
+      color: #839eae;
+      font-size: 8px;
+      line-height: 1.35;
+    }
+
+    .missing {
+      position: absolute;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      place-items: center;
+      padding: 30px;
+      background: #06121e;
+      text-align: center;
+    }
+
+    .missing article {
+      max-width: 650px;
+      padding: 24px;
+      border: 1px solid #8a6b27;
+      border-radius: 12px;
+      background: #28220e;
+      color: #fff;
+    }
+
+    .missing code {
+      display: block;
+      margin-top: 12px;
+      padding: 9px;
+      background: #07111b;
+      color: #82ddff;
+    }
+
+    .elevation-result {
+      position: absolute;
+      z-index: 218;
+      left: 50%;
+      bottom: calc(var(--vworld-bottom-safe) + 16px);
+      display: none;
+      transform: translateX(-50%);
+      padding: 8px 11px;
+      border: 1px solid #67dcff;
+      border-radius: 9px;
+      background: rgba(3, 16, 26, .95);
+      color: #dff7ff;
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .elevation-result.visible {
+      display: block;
+    }
+
+    @media(max-width:760px) {
+      .legend {
+        width: 220px
+      }
+
+      .status {
+        max-width: calc(100% - 245px)
+      }
+    }
+  </style>
+  __VWORLD_SCRIPT__
+</head>
+
+<body>
+  <div id="vmap"></div>
+  <svg id="flood-svg-layer" aria-label="추정 침수심 지도"></svg>
+  <div id="camera-dom-layer" aria-label="포항 CCTV 위치">
+    <div id="event-focus-marker" class="event-focus-marker">
+      <i></i>
+      <span>침수 감지 지점</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="building-button" class="active">실제 3D 건물 켜짐</button>
+    <button id="cctv-button" class="active">CCTV 준비 중</button>
+    <button id="flood-button" class="active">침수심 준비 중</button>
+    <button id="test-button">강제 Lev3 테스트 OFF</button>
+    <button id="refresh-button">CCTV·침수 새로고침</button>
+    <button id="dem-button">포항 DEM 받기</button>
+    <button id="test-camera-button">테스트 CCTV 이동·열기</button>
+    <button id="pohang-button">포항 전체 보기</button>
+    <button id="elevation-button">고도 확인 OFF</button>
+    <span id="debug-badge">API 대기</span>
+  </div>
+
+  <div id="status" class="status warn">
+    브이월드 지도와 CCTV·침수 레이어를 초기화하는 중입니다.
+  </div>
+  <div id="elevation-result" class="elevation-result">고도 선택 대기</div>
+
+  <aside class="legend">
+    <header>
+      <h3>침수심 색인</h3>
+      <span id="maximum-depth">최대 0cm</span>
+    </header>
+    <div class="legend-row"><i style="background:var(--level1-color)"></i><b>Lev1</b><span>1~11cm</span></div>
+    <div class="legend-row"><i style="background:var(--level2-color)"></i><b>Lev2</b><span>12~34cm</span></div>
+    <div class="legend-row"><i style="background:var(--level3-color)"></i><b>Lev3</b><span>35~59cm</span></div>
+    <div class="legend-row"><i style="background:var(--level4-color)"></i><b>Lev4</b><span>60cm 이상</span></div>
+    <span id="layer-summary">자료 대기 중</span>
+    <span id="error-summary"></span>
+    <small class="legend-note">
+      CCTV AI 침수등급을 상한으로 두고 DEM 고도별 추정 수심 밴드로 색을 나눕니다. 바다·강·하천 수면은 침수 토지에서 제외합니다.
+    </small>
+  </aside>
+
+  <div id="missing-key" class="missing">
+    <article>
+      <h2>브이월드 WebGL 3D 인증키를 확인하세요.</h2>
+      <p>.env의 인증키와 브이월드에 등록한 접속 주소가 같아야 합니다.</p>
+      <code>VWORLD_API_KEY=발급받은_인증키</code>
+    </article>
+  </div>
+
+  <script src="/static/level-colors.js?v=8.6.4"></script>
+  <script>
+    const TEST_CAMERA = __TEST_CAMERA_JSON__;
+    const CCTV_GROUND_OFFSET_M = Number(__CCTV_GROUND_OFFSET_M__);
+    const CCTV_OCCLUSION_TOLERANCE_M =
+      Number(__CCTV_OCCLUSION_TOLERANCE_M__);
+    const CCTV_OCCLUSION_CHECK_FRAMES = Math.max(
+      1,
+      Number(__CCTV_OCCLUSION_CHECK_FRAMES__) || 12
+    );
+    const CCTV_FAR_SCALE_DISTANCE_M = Math.max(
+      1000,
+      Number(__CCTV_FAR_SCALE_DISTANCE_M__) || 18000
+    );
+
+    // CCTV와 경고 위치 이동 공통 카메라 설정.
+    // 목적 좌표를 화면 중심점으로 고정하고, 카메라는 이 좌표를
+    // 바라보는 거리·각도로 배치합니다.
+    const FOCUS_HEADING_DEG = 345;
+    const FOCUS_PITCH_DEG = -55;
+    const FOCUS_DEFAULT_RANGE_M = 620;
+    const FOCUS_MIN_RANGE_M = 420;
+    const FOCUS_TARGET_RADIUS_M = 2.0;
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const LEVEL_COLORS =
+      window.POHANG_LEVEL_COLORS ||
+      Object.freeze([
+        '#42c889',
+        '#315cff',
+        '#7136d9',
+        '#bd2caf',
+        '#ff4298'
+      ]);
+
+    // CCTV markers, event focus markers and flood polygons all use
+    // the same level palette.
+    const CAMERA_COLORS = LEVEL_COLORS;
+    const FLOOD_COLORS = [
+      'transparent',
+      ...LEVEL_COLORS.slice(1)
+    ];
+    const FLOOD_ALPHA = [0, .44, .48, .54, .58];
+
+    LEVEL_COLORS.forEach((color, level) => {
+      document.documentElement.style.setProperty(
+        `--level${level}-color`,
+        color
+      );
+    });
+
+    let vworldMap = null;
+    let viewer = null;
+    let buildingLayer = null;
+    let pollTimer = null;
+    let viewerTimer = null;
+    let renderListener = null;
+    let loading = false;
+    let projectionFrame = 0;
+    let eventFocusCartesian = null;
+    let eventFocusTimer = null;
+    let pendingFocusData = null;
+    let activeFocusRequestId = null;
+    let elevationPickEnabled = false;
+    let elevationPickHandler = null;
+
+    let buildingsVisible = true;
+    let camerasVisible = true;
+    let floodVisible = true;
+    let testEnabled = false;
+    let parentManagedOverlay = window.parent !== window;
+    let latestPayload = {
+      cameras: [],
+      flood: { type: 'FeatureCollection', features: [] }
+    };
+
+    const domMarkers = new Map();
+    const floodPolygons = new Map();
+
+    const cameraLayer = document.getElementById('camera-dom-layer');
+    const eventFocusMarker =
+      document.getElementById('event-focus-marker');
+    const floodLayer = document.getElementById('flood-svg-layer');
+    const statusElement = document.getElementById('status');
+    const buildingButton = document.getElementById('building-button');
+    const cctvButton = document.getElementById('cctv-button');
+    const floodButton = document.getElementById('flood-button');
+    const testButton = document.getElementById('test-button');
+    const refreshButton = document.getElementById('refresh-button');
+    const demButton = document.getElementById('dem-button');
+    const maximumDepth = document.getElementById('maximum-depth');
+    const layerSummary = document.getElementById('layer-summary');
+    const errorSummary = document.getElementById('error-summary');
+    const debugBadge = document.getElementById('debug-badge');
+    const elevationButton = document.getElementById('elevation-button');
+    const elevationResult = document.getElementById('elevation-result');
+
+    function setStatus(text, type = '') {
+      statusElement.textContent = text;
+      statusElement.className = `status ${type}`.trim();
+    }
+
+    function setDebug(text, type = '') {
+      debugBadge.textContent = text;
+      debugBadge.className = type || '';
+    }
+
+    function postToDashboard(type, detail = {}) {
+      window.parent.postMessage(
+        { type, ...detail },
+        window.location.origin
+      );
+    }
+
+    function resolveViewer() {
+      return viewer || window.ws3d?.viewer || window.viewer || null;
+    }
+
+    function bindViewer() {
+      const resolved = resolveViewer();
+      if (!resolved) return false;
+      viewer = resolved;
+
+      try {
+        viewer.scene.requestRenderMode = false;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+        viewer.scene.requestRender();
+      } catch (error) { }
+
+      return true;
+    }
+
+    function waitForViewer(onReady) {
+      if (viewerTimer) clearInterval(viewerTimer);
+      let attempts = 0;
+
+      viewerTimer = setInterval(() => {
+        attempts += 1;
+
+        if (bindViewer()) {
+          clearInterval(viewerTimer);
+          viewerTimer = null;
+          onReady();
+          return;
+        }
+
+        if (attempts >= 100) {
+          clearInterval(viewerTimer);
+          viewerTimer = null;
+          setStatus(
+            '브이월드 Cesium Viewer(ws3d.viewer)를 찾지 못했습니다.',
+            'error'
+          );
+          setDebug('Viewer 오류', 'error');
+        }
+      }, 200);
+    }
+
+    function resizeMap() {
+      try {
+        viewer = resolveViewer();
+        viewer?.resize?.();
+        viewer?.scene?.requestRender?.();
+      } catch (error) { }
+    }
+
+    function findBuildingLayer() {
+      try {
+        return vworldMap?.getLayerElement('facility_build') || null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function applyBuildingVisibility(visible) {
+      buildingsVisible = Boolean(visible);
+      buildingLayer = buildingLayer || findBuildingLayer();
+      if (!buildingLayer) return false;
+
+      try {
+        buildingsVisible
+          ? buildingLayer.show()
+          : buildingLayer.hide();
+
+        buildingButton.classList.toggle(
+          'active',
+          buildingsVisible
+        );
+        buildingButton.textContent = buildingsVisible
+          ? '실제 3D 건물 켜짐'
+          : '실제 3D 건물 꺼짐';
+        return true;
+      } catch (error) {
+        setStatus(`건물 레이어 오류: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    function waitForBuildingLayer() {
+      let attempts = 0;
+      const timer = setInterval(() => {
+        attempts += 1;
+        if (
+          applyBuildingVisibility(buildingsVisible)
+          || attempts >= 40
+        ) {
+          clearInterval(timer);
+        }
+      }, 300);
+    }
+
+    function cameraLevel(camera) {
+      return Math.max(
+        0,
+        Math.min(4, Number(camera.stage) || 0)
+      );
+    }
+
+    function markerKey(camera) {
+      return String(camera.map_id || camera.id);
+    }
+
+    function createDomMarker(camera) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'camera-map-marker';
+      button.dataset.mapId = markerKey(camera);
+      button.setAttribute(
+        'aria-label',
+        `${camera.name} CCTV 열기`
+      );
+      button._projectionMisses = 0;
+      button._occluded = false;
+      button._occlusionSlot =
+        domMarkers.size % CCTV_OCCLUSION_CHECK_FRAMES;
+
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        postToDashboard('open-camera', {
+          cameraId: String(camera.id),
+          cameraIndex: Number.isFinite(
+            Number(camera.camera_index)
+          )
+            ? Number(camera.camera_index)
+            : null
+        });
+      });
+
+      cameraLayer.appendChild(button);
+      return button;
+    }
+
+    function updateDomMarker(button, camera) {
+      const level = cameraLevel(camera);
+
+      button.dataset.level = `L${level}`;
+      button.title =
+        `${camera.name} · Lev${level} · ` +
+        `${Number(camera.depth_cm || 0).toFixed(0)}cm · ` +
+        `강수 ${Number(camera.rain_mm || 0).toFixed(1)}mm · ` +
+        `지면 고정 ${CCTV_GROUND_OFFSET_M.toFixed(1)}m`;
+
+      button.style.setProperty(
+        '--marker-color',
+        CAMERA_COLORS[level]
+      );
+      button.classList.toggle('active', level >= 1);
+      button.hidden = !camerasVisible;
+      button._camera = camera;
+      const backendElevation = Number(camera.elevation_m);
+      const markerElevation = Number.isFinite(backendElevation)
+        ? backendElevation + CCTV_GROUND_OFFSET_M
+        : CCTV_GROUND_OFFSET_M;
+      button._cartographic = Cesium.Cartographic.fromDegrees(
+        Number(camera.lon),
+        Number(camera.lat),
+        markerElevation
+      );
+      button._cartesian = Cesium.Cartesian3.fromDegrees(
+        Number(camera.lon),
+        Number(camera.lat),
+        markerElevation
+      );
+    }
+
+    let terrainCorrectionVersion = 0;
+    let floodTerrainCorrectionVersion = 0;
+
+    async function correctCameraTerrainHeights(cameras) {
+      viewer = resolveViewer();
+      if (
+        !viewer?.terrainProvider ||
+        typeof Cesium.sampleTerrainMostDetailed !== 'function'
+      ) return;
+
+      const version = ++terrainCorrectionVersion;
+      const records = [];
+      for (const camera of cameras) {
+        const marker = domMarkers.get(markerKey(camera));
+        if (!marker) continue;
+        records.push({
+          marker,
+          camera,
+          cartographic: Cesium.Cartographic.fromDegrees(
+            Number(camera.lon),
+            Number(camera.lat)
+          )
+        });
+      }
+      if (!records.length) return;
+
+      try {
+        const sampled = await Cesium.sampleTerrainMostDetailed(
+          viewer.terrainProvider,
+          records.map(record => record.cartographic)
+        );
+        if (version !== terrainCorrectionVersion) return;
+
+        sampled.forEach((position, index) => {
+          const record = records[index];
+          const height = Number(position?.height);
+          if (!Number.isFinite(height)) return;
+          record.marker._cartographic = position;
+          record.marker._cartesian = Cesium.Cartesian3.fromRadians(
+            position.longitude,
+            position.latitude,
+            height + CCTV_GROUND_OFFSET_M
+          );
+          record.marker._camera.terrain_height_m = height;
+        });
+        viewer.scene.requestRender();
+      } catch (error) {
+        console.warn('CCTV 지형고도 보정 실패, 백엔드 DEM 높이를 사용합니다.', error);
+      }
+    }
+
+    function syncDomCameras(cameras) {
+      const validKeys = new Set();
+
+      for (const camera of cameras) {
+        const lat = Number(camera.lat);
+        const lon = Number(camera.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+          continue;
+        }
+
+        const key = markerKey(camera);
+        validKeys.add(key);
+
+        let button = domMarkers.get(key);
+        if (!button) {
+          button = createDomMarker(camera);
+          domMarkers.set(key, button);
+        }
+        updateDomMarker(button, camera);
+      }
+
+      for (const [key, button] of domMarkers) {
+        if (!validKeys.has(key)) {
+          button.remove();
+          domMarkers.delete(key);
+        }
+      }
+
+      cctvButton.classList.toggle('active', camerasVisible);
+      cctvButton.textContent = camerasVisible
+        ? `CCTV 켜짐 · ${domMarkers.size}`
+        : `CCTV 꺼짐 · ${domMarkers.size}`;
+      correctCameraTerrainHeights(cameras);
+    }
+
+    function floodKey(feature, index) {
+      return String(
+        feature?.properties?.map_id
+        || `flood-${index}`
+      );
+    }
+
+    function floodCoordinateRings(feature) {
+      const rings = feature?.geometry?.coordinates;
+      if (!Array.isArray(rings)) return [];
+
+      return rings
+        .map(ring => (Array.isArray(ring) ? ring : [])
+          .map(point => [
+            Number(point?.[0]),
+            Number(point?.[1]),
+            Number(point?.[2])
+          ])
+          .filter(point =>
+            Number.isFinite(point[0])
+            && Number.isFinite(point[1])
+          )
+        )
+        .filter(ring => ring.length >= 4);
+    }
+
+    function createFloodPolygon(feature, index) {
+      const polygon = document.createElementNS(
+        SVG_NS,
+        'path'
+      );
+      polygon.classList.add('flood-screen-polygon');
+      polygon.dataset.mapId = floodKey(feature, index);
+      floodLayer.appendChild(polygon);
+      return polygon;
+    }
+
+    function updateFloodPolygon(polygon, feature, index) {
+      const properties = feature.properties || {};
+      const level = Math.max(
+        1,
+        Math.min(4, Number(properties.level) || 1)
+      );
+      const coordinateRings = floodCoordinateRings(feature);
+
+      polygon._feature = feature;
+      polygon._coordinateRings = coordinateRings;
+      polygon._cartesianRings = coordinateRings.map(ring =>
+        ring.map(point =>
+          Cesium.Cartesian3.fromDegrees(
+            point[0],
+            point[1],
+            Number.isFinite(point[2]) ? point[2] : 1
+          )
+        )
+      );
+      polygon.setAttribute('fill-rule', 'evenodd');
+      polygon.setAttribute('clip-rule', 'evenodd');
+      polygon.style.fill = FLOOD_COLORS[level];
+      polygon.style.fillOpacity = String(
+        FLOOD_ALPHA[level]
+      );
+      polygon.style.display = floodVisible ? 'block' : 'none';
+      polygon.dataset.level = String(level);
+      polygon.setAttribute(
+        'aria-label',
+        `Lev${level} 추정 침수심 ` +
+        `${Number(properties.depth_cm || 0).toFixed(0)}cm`
+      );
+    }
+
+    async function correctFloodTerrainHeights() {
+      viewer = resolveViewer();
+      if (
+        !viewer?.terrainProvider ||
+        typeof Cesium.sampleTerrainMostDetailed !== 'function'
+      ) return;
+
+      const version = ++floodTerrainCorrectionVersion;
+      const records = [];
+      for (const polygon of floodPolygons.values()) {
+        const coordinateRings = polygon._coordinateRings || [];
+        coordinateRings.forEach((ring, ringIndex) => {
+          ring.forEach((point, pointIndex) => {
+            records.push({
+              polygon,
+              ringIndex,
+              pointIndex,
+              cartographic: Cesium.Cartographic.fromDegrees(
+                Number(point[0]),
+                Number(point[1])
+              )
+            });
+          });
+        });
+      }
+      if (!records.length) return;
+
+      try {
+        const sampled = await Cesium.sampleTerrainMostDetailed(
+          viewer.terrainProvider,
+          records.map(record => record.cartographic)
+        );
+        if (version !== floodTerrainCorrectionVersion) return;
+
+        const grouped = new Map();
+        sampled.forEach((position, index) => {
+          const record = records[index];
+          const height = Number(position?.height);
+          if (!Number.isFinite(height)) return;
+          if (!grouped.has(record.polygon)) {
+            grouped.set(
+              record.polygon,
+              (record.polygon._coordinateRings || []).map(
+                ring => Array(ring.length)
+              )
+            );
+          }
+          grouped.get(record.polygon)[record.ringIndex][record.pointIndex] =
+            Cesium.Cartesian3.fromRadians(
+              position.longitude,
+              position.latitude,
+              height + 1.2
+            );
+        });
+
+        for (const [polygon, cartesianRings] of grouped) {
+          if (
+            cartesianRings.length
+            && cartesianRings.every(ring => ring.length >= 4 && ring.every(Boolean))
+          ) {
+            polygon._cartesianRings = cartesianRings;
+          }
+        }
+        viewer.scene.requestRender();
+      } catch (error) {
+        console.warn(
+          '침수면 지형고도 보정 실패, 백엔드 DEM 높이를 사용합니다.',
+          error
+        );
+      }
+    }
+
+    function syncFloodPolygons(featureCollection) {
+      const features = Array.isArray(
+        featureCollection?.features
+      )
+        ? featureCollection.features
+        : [];
+      const validKeys = new Set();
+
+      features.forEach((feature, index) => {
+        const coordinateRings = floodCoordinateRings(feature);
+        if (!coordinateRings.length || coordinateRings[0].length < 4) return;
+
+        const key = floodKey(feature, index);
+        validKeys.add(key);
+
+        let polygon = floodPolygons.get(key);
+        if (!polygon) {
+          polygon = createFloodPolygon(feature, index);
+          floodPolygons.set(key, polygon);
+        }
+
+        updateFloodPolygon(polygon, feature, index);
+      });
+
+      for (const [key, polygon] of floodPolygons) {
+        if (!validKeys.has(key)) {
+          polygon.remove();
+          floodPolygons.delete(key);
+        }
+      }
+
+      floodButton.classList.toggle('active', floodVisible);
+      floodButton.classList.remove('error');
+      floodButton.textContent = floodVisible
+        ? `침수심 켜짐 · ${floodPolygons.size}격자`
+        : `침수심 꺼짐 · ${floodPolygons.size}격자`;
+      correctFloodTerrainHeights();
+    }
+
+    function markerDistanceScale(cartesian) {
+      const cameraPosition = viewer?.camera?.positionWC;
+      if (!cameraPosition || !cartesian) return 1;
+
+      const distance = Cesium.Cartesian3.distance(
+        cameraPosition,
+        cartesian
+      );
+      return Cesium.Math.clamp(
+        1.05 - distance / CCTV_FAR_SCALE_DISTANCE_M,
+        .58,
+        1
+      );
+    }
+
+    function pointBehindHorizon(cartesian, ellipsoidOccluder) {
+      if (!ellipsoidOccluder || !cartesian) return false;
+      try {
+        return !ellipsoidOccluder.isPointVisible(cartesian);
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function nearestSceneSurface(screen) {
+      let surface = null;
+
+      if (viewer.scene.pickPositionSupported) {
+        try {
+          surface = viewer.scene.pickPosition(screen);
+        } catch (error) {
+          surface = null;
+        }
+      }
+
+      if (!surface) {
+        try {
+          const ray = viewer.camera.getPickRay(screen);
+          surface = viewer.scene.globe.pick(
+            ray,
+            viewer.scene
+          );
+        } catch (error) {
+          surface = null;
+        }
+      }
+
+      return surface;
+    }
+
+    function updateMarkerOcclusion(
+      button,
+      screen,
+      ellipsoidOccluder
+    ) {
+      const slot = Number(button._occlusionSlot) || 0;
+      const shouldCheck =
+        projectionFrame % CCTV_OCCLUSION_CHECK_FRAMES === slot;
+
+      if (!shouldCheck) {
+        return Boolean(button._occluded);
+      }
+
+      let occluded = pointBehindHorizon(
+        button._cartesian,
+        ellipsoidOccluder
+      );
+
+      if (!occluded) {
+        const surface = nearestSceneSurface(screen);
+
+        if (surface) {
+          const cameraPosition = viewer.camera.positionWC;
+          const markerDistance = Cesium.Cartesian3.distance(
+            cameraPosition,
+            button._cartesian
+          );
+          const surfaceDistance = Cesium.Cartesian3.distance(
+            cameraPosition,
+            surface
+          );
+
+          // 화면 좌표 앞쪽에 산·건물·지면이 충분히 가까이 있으면
+          // 해당 CCTV는 실제로 가려진 것으로 처리합니다.
+          occluded = (
+            surfaceDistance + CCTV_OCCLUSION_TOLERANCE_M
+            < markerDistance
+          );
+        }
+      }
+
+      button._occluded = occluded;
+      return occluded;
+    }
+
+    function projectOverlays() {
+      if (!viewer?.scene) return;
+
+      projectionFrame += 1;
+
+      const width = viewer.canvas.clientWidth;
+      const height = viewer.canvas.clientHeight;
+      let ellipsoidOccluder = null;
+
+      try {
+        ellipsoidOccluder =
+          new Cesium.EllipsoidalOccluder(
+            viewer.scene.globe.ellipsoid,
+            viewer.camera.positionWC
+          );
+      } catch (error) {
+        ellipsoidOccluder = null;
+      }
+
+      if (camerasVisible) {
+        for (const button of domMarkers.values()) {
+          const screen = Cesium.SceneTransforms
+            .wgs84ToWindowCoordinates(
+              viewer.scene,
+              button._cartesian
+            );
+
+          if (!screen) {
+            button._projectionMisses += 1;
+            if (button._projectionMisses > 8) {
+              button.style.display = 'none';
+            }
+            continue;
+          }
+
+          button._projectionMisses = 0;
+
+          if (
+            screen.x < -35
+            || screen.y < -35
+            || screen.x > width + 35
+            || screen.y > height + 35
+          ) {
+            button.style.display = 'none';
+            continue;
+          }
+
+          const screenPoint = new Cesium.Cartesian2(
+            screen.x,
+            screen.y
+          );
+
+          if (
+            updateMarkerOcclusion(
+              button,
+              screenPoint,
+              ellipsoidOccluder
+            )
+          ) {
+            button.style.display = 'none';
+            continue;
+          }
+
+          const scale = markerDistanceScale(
+            button._cartesian
+          );
+
+          button.style.display = 'grid';
+          button.style.transform =
+            `translate(${screen.x}px,${screen.y}px) ` +
+            'translate(-50%,-100%) ' +
+            `scale(${scale})`;
+        }
+      }
+
+      if (eventFocusCartesian) {
+        const focusScreen = Cesium.SceneTransforms
+          .wgs84ToWindowCoordinates(
+            viewer.scene,
+            eventFocusCartesian
+          );
+
+        if (
+          focusScreen &&
+          focusScreen.x >= -80 &&
+          focusScreen.y >= -80 &&
+          focusScreen.x <= width + 80 &&
+          focusScreen.y <= height + 80
+        ) {
+          eventFocusMarker.style.display = 'flex';
+          eventFocusMarker.style.transform =
+            `translate(${focusScreen.x}px,${focusScreen.y}px) ` +
+            'translate(-17px,-100%)';
+        } else {
+          eventFocusMarker.style.display = 'none';
+        }
+      }
+
+      if (floodVisible) {
+        for (const polygon of floodPolygons.values()) {
+          const projectedRings = [];
+
+          for (const cartesianRing of polygon._cartesianRings || []) {
+            const projected = [];
+            for (const cartesian of cartesianRing) {
+              const point = Cesium.SceneTransforms
+                .wgs84ToWindowCoordinates(
+                  viewer.scene,
+                  cartesian
+                );
+              if (point) {
+                projected.push([point.x, point.y]);
+              }
+            }
+            if (projected.length >= 4) {
+              projectedRings.push(projected);
+            }
+          }
+
+          if (!projectedRings.length) {
+            polygon.style.visibility = 'hidden';
+            continue;
+          }
+
+          polygon.style.visibility = 'visible';
+          const pathData = projectedRings
+            .map(ring =>
+              `M ${ring.map(point => `${point[0]},${point[1]}`).join(' L ')} Z`
+            )
+            .join(' ');
+          polygon.setAttribute('d', pathData);
+        }
+      }
+    }
+
+    function startOverlayProjection() {
+      if (renderListener || !viewer?.scene) return;
+      renderListener = viewer.scene.postRender
+        .addEventListener(projectOverlays);
+    }
+
+    function applyCameraVisibility(visible) {
+      camerasVisible = Boolean(visible);
+      cameraLayer.style.display = camerasVisible
+        ? 'block'
+        : 'none';
+      cctvButton.classList.toggle(
+        'active',
+        camerasVisible
+      );
+      cctvButton.textContent = camerasVisible
+        ? `CCTV 켜짐 · ${domMarkers.size}`
+        : `CCTV 꺼짐 · ${domMarkers.size}`;
+    }
+
+    function applyFloodVisibility(visible) {
+      floodVisible = Boolean(visible);
+      floodLayer.style.display = floodVisible
+        ? 'block'
+        : 'none';
+      floodButton.classList.toggle(
+        'active',
+        floodVisible
+      );
+      floodButton.textContent = floodVisible
+        ? `침수심 켜짐 · ${floodPolygons.size}격자`
+        : `침수심 꺼짐 · ${floodPolygons.size}격자`;
+    }
+
+    function updateSummary(payload) {
+      maximumDepth.textContent =
+        `최대 ${Number(
+          payload.maximum_depth_cm || 0
+        ).toFixed(0)}cm`;
+
+      layerSummary.textContent =
+        `CCTV ${Number(payload.camera_count || 0)}개 · ` +
+        `침수 감지 ${Number(
+          payload.active_camera_count || 0
+        )}개 · ` +
+        `침수 영역 ${Number(
+          payload.flood_feature_count || 0
+        )}개 · ` +
+        `강수 지점 ${Number(
+          payload.rain_point_count || 0
+        )}개 · ` +
+        `DEM ${Number(payload.dem_status?.cached_tile_count || 0)}타일 · ` +
+        `Z${Number(
+          payload.dem_status?.last_effective_zoom ??
+          payload.dem_status?.effective_maxzoom ??
+          12
+        )} · ` +
+        `기준점 이동 ${Number(
+          payload.terrain_sources?.[0]?.seed_offset_m || 0
+        ).toFixed(0)}m · ` +
+        `면적 ${Number(
+          payload.terrain_sources?.[0]?.polygon_area_m2 || 0
+        ).toFixed(0)}㎡ · ` +
+        `${payload.test_forced ? '강제 Lev3' : '실시간 침수도 연동'}`;
+
+      const errors = Array.isArray(payload.errors)
+        ? payload.errors
+        : [];
+      errorSummary.textContent = errors.length
+        ? `일부 자료 오류: ${errors.slice(0, 2).join(' / ')}`
+        : '';
+    }
+
+    async function fetchOverlay() {
+      const response = await fetch(
+        `/api/map/vworld-overlays?test=${testEnabled ? 'true' : 'false'
+        }`,
+        { cache: 'no-store' }
+      );
+
+      if (!response.ok) {
+        let message =
+          `${response.status} ${response.statusText}`;
+        try {
+          const body = await response.json();
+          message = body.detail || message;
+        } catch (error) { }
+        throw new Error(message);
+      }
+
+      return response.json();
+    }
+
+    async function applyPayload(payload) {
+      latestPayload = payload;
+      syncDomCameras(payload.cameras || []);
+      syncFloodPolygons(payload.flood);
+      updateSummary(payload);
+
+      setStatus(
+        `브이월드 오버레이 정상 · ` +
+        `CCTV ${domMarkers.size}개 · ` +
+        `침수 ${floodPolygons.size}영역` +
+        (payload.test_forced ? ' · 강제 Lev3' : ' · 실시간 침수도 연동'),
+        payload.errors?.length ? 'warn' : 'ok'
+      );
+      setDebug(
+        `CCTV ${domMarkers.size} · ` +
+        `침수 ${floodPolygons.size}`,
+        payload.errors?.length ? 'warn' : 'ok'
+      );
+      viewer?.scene?.requestRender?.();
+    }
+
+    async function refreshOverlay() {
+      if (parentManagedOverlay) {
+        postToDashboard('vworld-refresh-overlay', {
+          test: testEnabled
+        });
+        return;
+      }
+
+      if (loading) return;
+      loading = true;
+      refreshButton.disabled = true;
+
+      try {
+        await applyPayload(await fetchOverlay());
+      } catch (error) {
+        // 오류가 나도 기존 정상 마커와 침수면을 지우지 않습니다.
+        setStatus(
+          `CCTV·침수 API 오류 · 기존 자료 유지: ` +
+          `${error.message}`,
+          'error'
+        );
+        setDebug('API 오류 · 기존 자료 유지', 'error');
+      } finally {
+        loading = false;
+        refreshButton.disabled = false;
+      }
+    }
+
+    async function prefetchDem() {
+      demButton.disabled = true;
+      demButton.textContent = 'DEM 다운로드 중...';
+      setStatus('포항 DEM 타일을 다운로드하고 있습니다. 첫 실행은 시간이 걸릴 수 있습니다.', 'warn');
+      try {
+        const response = await fetch('/api/dem/prefetch', { method: 'POST' });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'DEM 다운로드 실패');
+        demButton.textContent = `DEM 완료 · ${result.downloaded + result.cached}/${result.total}`;
+        setStatus(`포항 DEM 준비 완료 · 신규 ${result.downloaded} · 캐시 ${result.cached} · 실패 ${result.failed}`, result.failed ? 'warn' : 'ok');
+        await refreshOverlay();
+      } catch (error) {
+        demButton.textContent = 'DEM 다시 받기';
+        setStatus(`DEM 다운로드 오류: ${error.message}`, 'error');
+      } finally {
+        demButton.disabled = false;
+      }
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      refreshOverlay();
+      pollTimer = setInterval(refreshOverlay, 10000);
+    }
+
+    async function focusMapLocation(data) {
+      pendingFocusData = data;
+
+      const lat = Number(data?.lat);
+      const lon = Number(data?.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return false;
+      }
+
+      viewer = resolveViewer();
+      if (!viewer?.camera) {
+        return false;
+      }
+
+      const requestId = String(
+        data?.requestId ||
+        `${data?.cameraId || 'location'}:${lat}:${lon}`
+      );
+
+      // 부모가 초기화 안전을 위해 같은 요청을 여러 번 보내더라도
+      // 카메라 이동은 한 번만 수행합니다.
+      if (requestId === activeFocusRequestId) {
+        return true;
+      }
+      activeFocusRequestId = requestId;
+
+      const level = Math.max(
+        0,
+        Math.min(4, Number(data?.level) || 0)
+      );
+      const label = String(
+        data?.label ||
+        data?.address ||
+        'CCTV 위치'
+      );
+
+      let groundHeight = 0;
+      try {
+        if (
+          viewer.terrainProvider &&
+          Cesium.sampleTerrainMostDetailed
+        ) {
+          const sampled = await Cesium.sampleTerrainMostDetailed(
+            viewer.terrainProvider,
+            [Cesium.Cartographic.fromDegrees(lon, lat)]
+          );
+          groundHeight = Number(sampled?.[0]?.height) || 0;
+        }
+      } catch (error) {
+        groundHeight = 0;
+      }
+
+      // 지형 조회 중 더 새로운 CCTV가 선택됐다면 이전 이동은 중단합니다.
+      if (requestId !== activeFocusRequestId) {
+        return false;
+      }
+
+      pendingFocusData = null;
+      eventFocusCartesian = Cesium.Cartesian3.fromDegrees(
+        lon,
+        lat,
+        groundHeight + CCTV_GROUND_OFFSET_M
+      );
+      eventFocusMarker
+        .querySelector('span')
+        .textContent = `${label} · Lev${level}`;
+      eventFocusMarker.style.setProperty(
+        '--focus-color',
+        CAMERA_COLORS[level]
+      );
+
+      if (eventFocusTimer) {
+        clearTimeout(eventFocusTimer);
+      }
+      eventFocusTimer = setTimeout(() => {
+        eventFocusCartesian = null;
+        eventFocusMarker.style.display = 'none';
+      }, 12000);
+
+      const requestedRange = Number(
+        data?.range_m ?? data?.height_m
+      );
+      const viewRange = Number.isFinite(requestedRange)
+        ? Math.max(FOCUS_MIN_RANGE_M, requestedRange)
+        : FOCUS_DEFAULT_RANGE_M;
+
+      const targetCartesian = Cesium.Cartesian3.fromDegrees(
+        lon,
+        lat,
+        groundHeight + CCTV_GROUND_OFFSET_M
+      );
+      const targetSphere = new Cesium.BoundingSphere(
+        targetCartesian,
+        FOCUS_TARGET_RADIUS_M
+      );
+      const targetOffset = new Cesium.HeadingPitchRange(
+        Cesium.Math.toRadians(FOCUS_HEADING_DEG),
+        Cesium.Math.toRadians(FOCUS_PITCH_DEG),
+        viewRange
+      );
+
+      const completeFocus = () => {
+        viewer?.scene?.requestRender?.();
+
+        postToDashboard(
+          'focus-map-location-complete',
+          {
+            requestId,
+            cameraId: String(data?.cameraId || ''),
+            lat,
+            lon,
+            centered: true
+          }
+        );
+      };
+
+      // 기존 방식은 카메라를 좌표 바로 위에 놓고 기울였기 때문에
+      // 시선 중심이 CCTV 좌표보다 북쪽으로 밀렸습니다.
+      // BoundingSphere의 중심을 실제 CCTV 좌표로 지정하면
+      // 목록·경고 클릭 모두 해당 좌표가 화면 중심에 정확히 놓입니다.
+      if (
+        typeof viewer.camera.flyToBoundingSphere === 'function'
+      ) {
+        viewer.camera.flyToBoundingSphere(
+          targetSphere,
+          {
+            offset: targetOffset,
+            duration: 1.25,
+            complete: completeFocus
+          }
+        );
+      } else {
+        // 구형 Cesium 대응: 즉시 중심을 맞춘 뒤 렌더링합니다.
+        viewer.camera.lookAt(
+          targetCartesian,
+          targetOffset
+        );
+        viewer.scene.requestRender?.();
+        window.setTimeout(
+          completeFocus,
+          80
+        );
+      }
+      return true;
+    }
+
+    function sceneCartesianAt(screenPosition) {
+      viewer = resolveViewer();
+      if (!viewer?.scene || !screenPosition) return null;
+
+      let cartesian = null;
+      if (viewer.scene.pickPositionSupported) {
+        try {
+          cartesian = viewer.scene.pickPosition(screenPosition);
+        } catch (error) {
+          cartesian = null;
+        }
+      }
+      if (!cartesian) {
+        try {
+          const ray = viewer.camera.getPickRay(screenPosition);
+          cartesian = viewer.scene.globe.pick(ray, viewer.scene);
+        } catch (error) {
+          cartesian = null;
+        }
+      }
+      return cartesian;
+    }
+
+    async function queryElevationAtClick(movement) {
+      const cartesian = sceneCartesianAt(movement?.position);
+      if (!cartesian) {
+        setStatus('선택한 지점의 지형 좌표를 찾지 못했습니다.', 'warn');
+        return;
+      }
+
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      const lat = Cesium.Math.toDegrees(cartographic.latitude);
+      const lon = Cesium.Math.toDegrees(cartographic.longitude);
+
+      elevationResult.textContent = 'DEM 고도 조회 중...';
+      elevationResult.classList.add('visible');
+
+      try {
+        const params = new URLSearchParams({
+          lat: String(lat),
+          lon: String(lon)
+        });
+        const response = await fetch('/api/dem/elevation?' + params, {
+          cache: 'no-store'
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || 'DEM 고도 조회 실패');
+
+        elevationResult.textContent =
+          `위도 ${Number(data.lat).toFixed(6)} · ` +
+          `경도 ${Number(data.lon).toFixed(6)} · ` +
+          `DEM 고도 ${Number(data.elevation_m).toFixed(1)}m`;
+        postToDashboard('vworld-elevation-picked', data);
+      } catch (error) {
+        elevationResult.textContent = `고도 조회 오류 · ${error.message}`;
+      }
+    }
+
+    function setElevationPick(enabled) {
+      elevationPickEnabled = Boolean(enabled);
+      elevationButton.classList.toggle('active', elevationPickEnabled);
+      elevationButton.textContent = elevationPickEnabled
+        ? '고도 확인 ON'
+        : '고도 확인 OFF';
+
+      viewer = resolveViewer();
+      if (elevationPickHandler) {
+        elevationPickHandler.destroy();
+        elevationPickHandler = null;
+      }
+
+      if (!elevationPickEnabled) {
+        elevationResult.classList.remove('visible');
+        return;
+      }
+      if (!viewer?.canvas || typeof Cesium.ScreenSpaceEventHandler !== 'function') {
+        setStatus('브이월드 고도 선택기를 준비하지 못했습니다.', 'error');
+        return;
+      }
+
+      elevationPickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+      elevationPickHandler.setInputAction(
+        queryElevationAtClick,
+        Cesium.ScreenSpaceEventType.LEFT_CLICK
+      );
+      setStatus('지도에서 고도를 확인할 지점을 클릭하세요.', 'ok');
+    }
+
+    function flyToPohang() {
+      viewer = resolveViewer();
+      if (!viewer?.camera) return;
+
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(
+          129.365,
+          36.030,
+          5500
+        ),
+        orientation: {
+          heading: Cesium.Math.toRadians(350),
+          pitch: Cesium.Math.toRadians(-48),
+          roll: 0
+        },
+        duration: 1.5
+      });
+    }
+
+    function flyToTestCamera(openVideo = false) {
+      const camera = (latestPayload.cameras || [])
+        .find(item =>
+          item.local_test
+          || String(item.id) === String(TEST_CAMERA.id)
+        )
+        || TEST_CAMERA;
+
+      viewer = resolveViewer();
+      if (viewer?.camera) {
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(
+            Number(camera.lon),
+            Number(camera.lat),
+            900
+          ),
+          orientation: {
+            heading: Cesium.Math.toRadians(345),
+            pitch: Cesium.Math.toRadians(-42),
+            roll: 0
+          },
+          duration: 1.3
+        });
+      }
+
+      if (openVideo) {
+        setTimeout(() => {
+          postToDashboard('open-camera', {
+            cameraId: String(camera.id),
+            cameraIndex: Number.isFinite(
+              Number(camera.camera_index)
+            )
+              ? Number(camera.camera_index)
+              : 0
+          });
+        }, 450);
+      }
+    }
+
+    function initializeVworld() {
+      if (
+        typeof window.vw === 'undefined'
+        || typeof window.Cesium === 'undefined'
+      ) {
+        document.getElementById('missing-key')
+          .style.display = 'grid';
+        return;
+      }
+
+      vw.ws3dInitCallBack = function () {
+        buildingLayer = findBuildingLayer();
+        waitForBuildingLayer();
+
+        waitForViewer(() => {
+          startOverlayProjection();
+          startPolling();
+          resizeMap();
+          flyToPohang();
+
+          postToDashboard('vworld3d-ready', {
+            cameraId: TEST_CAMERA.id
+          });
+
+          if (pendingFocusData) {
+            focusMapLocation(pendingFocusData);
+          }
+        });
+      };
+
+      const position = new vw.CameraPosition(
+        new vw.CoordZ(129.365, 36.030, 5200),
+        new vw.Direction(350, -48, 0)
+      );
+
+      try {
+        vworldMap = new vw.Map();
+        vworldMap.setOption({
+          mapId: 'vmap',
+          initPosition: position,
+          logo: true,
+          navigation: true
+        });
+        vworldMap.setMapId('vmap');
+        vworldMap.setInitPosition(position);
+        vworldMap.setLogoVisible(true);
+        vworldMap.setNavigationZoomVisible(true);
+        vworldMap.start();
+
+        viewer = window.ws3d?.viewer || null;
+        bindViewer();
+
+        requestAnimationFrame(resizeMap);
+        setTimeout(resizeMap, 300);
+        setTimeout(resizeMap, 900);
+      } catch (error) {
+        setStatus(
+          `브이월드 초기화 실패: ${error.message}`,
+          'error'
+        );
+      }
+    }
+
+    buildingButton.addEventListener(
+      'click',
+      () => applyBuildingVisibility(!buildingsVisible)
+    );
+    cctvButton.addEventListener(
+      'click',
+      () => applyCameraVisibility(!camerasVisible)
+    );
+    floodButton.addEventListener(
+      'click',
+      () => applyFloodVisibility(!floodVisible)
+    );
+    testButton.addEventListener('click', () => {
+      testEnabled = !testEnabled;
+      testButton.classList.toggle(
+        'active',
+        testEnabled
+      );
+      testButton.textContent = testEnabled
+        ? '강제 Lev3 테스트 ON'
+        : '강제 Lev3 테스트 OFF';
+      refreshOverlay();
+    });
+    refreshButton.addEventListener(
+      'click',
+      refreshOverlay
+    );
+    demButton.addEventListener('click', prefetchDem);
+    document.getElementById('test-camera-button')
+      .addEventListener(
+        'click',
+        () => flyToTestCamera(true)
+      );
+    document.getElementById('pohang-button')
+      .addEventListener('click', flyToPohang);
+    elevationButton.addEventListener(
+      'click',
+      () => setElevationPick(!elevationPickEnabled)
+    );
+
+    window.addEventListener('message', event => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data?.type === 'set-vworld-overlay-payload') {
+        parentManagedOverlay = true;
+        const payload = event.data.payload || {};
+        testEnabled = Boolean(payload.test);
+        testButton.classList.toggle('active', testEnabled);
+        testButton.textContent = testEnabled
+          ? '강제 Lev3 테스트 ON'
+          : '강제 Lev3 테스트 OFF';
+        applyPayload(payload);
+        return;
+      }
+
+      // 표시 여부와 카메라 이동은 부모 대시보드가 제어합니다.
+      // 침수/CCTV 데이터도 V8.5.2부터 부모가 조회한 동일 payload를 사용합니다.
+      if (event.data?.type === 'set-vworld-buildings') {
+        applyBuildingVisibility(
+          Boolean(event.data.visible)
+        );
+      }
+      if (event.data?.type === 'set-vworld-cctv-visible') {
+        applyCameraVisibility(
+          Boolean(event.data.visible)
+        );
+      }
+      if (event.data?.type === 'set-vworld-flood-visible') {
+        applyFloodVisibility(
+          Boolean(event.data.visible)
+        );
+      }
+      if (event.data?.type === 'set-vworld-elevation-pick') {
+        setElevationPick(Boolean(event.data.enabled));
+      }
+
+      if (event.data?.type === 'focus-test-camera') {
+        flyToTestCamera(
+          Boolean(event.data.openVideo)
+        );
+      }
+      if (event.data?.type === 'focus-map-location') {
+        pendingFocusData = event.data;
+        focusMapLocation(event.data);
+      }
+    });
+
+    window.addEventListener('resize', resizeMap);
+    window.addEventListener('beforeunload', () => {
+      if (pollTimer) clearInterval(pollTimer);
+      if (viewerTimer) clearInterval(viewerTimer);
+      if (eventFocusTimer) clearTimeout(eventFocusTimer);
+      if (elevationPickHandler) elevationPickHandler.destroy();
+      if (typeof renderListener === 'function') {
+        renderListener();
+      }
+    });
+    window.addEventListener('load', initializeVworld);
+  </script>
+</body>
+
+</html>

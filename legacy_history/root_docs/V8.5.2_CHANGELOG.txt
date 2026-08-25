@@ -1,0 +1,35 @@
+V8.5.2 차량추적·버퍼·다수결·창이동·비식별화 보정
+
+1. 차량 탐지/추적
+- best.pt 차량 confidence 기본 0.08, 입력 960.
+- 전체 프레임 검출 수가 적으면 좌/우 중첩 타일 detector rescue 수행.
+- LK optical flow + template matching 교차검증 + 단기 velocity extrapolation.
+- fresh detector box는 즉시 우선 적용하고 track id 재연결 범위를 확대.
+- 차량 박스 하단 도로 특징이 optical flow를 끌고 가지 않도록 하단 영역 일부 제외.
+
+2. CCTV 버퍼링 감소
+- AI 3단계 파이프라인 실행 간격 기본 0.70초(구버전 .env도 최소 0.65초).
+- CPU torch thread 기본 4개로 제한해 grab/render thread starvation 방지.
+- MJPEG render 10fps, 출력 폭 최대 960px, JPEG 품질 최대 74.
+- 개인정보 Haar 갱신 최소 0.50초.
+
+3. CCTV 창 이동
+- CCTV window layer를 document.body로 이동하고 viewport fixed layer로 변경.
+- 지도 패널 경계를 넘어 브라우저 전체 화면 안에서 드래그 가능.
+
+4. 침수 단계 다수결
+- 현재 프레임의 차량별 Lev 투표가 2대 이상이면 최신 차량 최빈값을 지도에 즉시 사용.
+- 5 x Lev0 + 1 x Lev1 => Lev0.
+- 동률은 낮은 단계 우선.
+- 테스트 CCTV 강제 Lev1 기본 비활성(TEST_CCTV_ENFORCE_MIN_LEVEL=false).
+- 최신 프레임의 차량 투표가 부족할 때만 최근 프레임별 대표단계의 최빈값으로 안정화.
+
+5. 이력 UI
+- 그래프는 침수 단계만 표시.
+- 강수량/하수 수위/하천 수위는 기존 DB 저장 및 하단 통합 표에서만 표시.
+
+6. 벽/간판 모자이크 오탐 감소
+- Haar 얼굴/번호판 3회 연속 확인.
+- 해당 영역에 실제 프레임 변화(motion)가 있어야 모자이크.
+- face/plate 최대 면적 hard cap 추가 강화.
+- 번호판은 기존처럼 차량 영역 내부에 있을 때만 허용.

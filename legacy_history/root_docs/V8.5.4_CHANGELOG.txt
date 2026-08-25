@@ -1,0 +1,12 @@
+V8.5.4 - damaged model recovery and CCTV bandwidth correction
+
+- Confirmed root cause from the recording: weights/tire_level.pt is truncated
+  and has no PyTorch zip central directory.
+- Validate checkpoint containers before YOLO load and report a short Korean
+  repair message instead of exposing the internal miniz/PyTorch stack text.
+- Keep the vehicle pipeline operational when one optional stage model is bad.
+  A damaged tire model now classifies every detected vehicle with
+  car_flood_cls.pt; a valid tire model can also operate without body fallback.
+- Show a compact degraded-mode warning with full diagnostics in the tooltip.
+- Reduce MJPEG output to 6 FPS and quality 64 to lower browser/network load,
+  while preserving 960-pixel frames for distant-vehicle detection.

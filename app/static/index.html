@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>포항 브이월드 9요소 침수 통합관제 V8.6.4</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="/static/style.css?v=8.6.4">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="mark">水</div><div><p>POHANG 3D FLOOD CONTROL</p><h1>도시침수·차량 안전 통합관제</h1></div></div>
+  <div class="header-info"><span id="clock"></span><span id="system-status">연결 중</span></div>
+</header>
+<main>
+  <section class="status-strip">
+    <span id="model-status">침수 YOLO 확인 중</span>
+    <span id="privacy-status">얼굴·번호판 비식별화 확인 중</span>
+    <span id="cctv-api-status">포항 CCTV API 확인 중</span>
+    <span id="background-ai-status">백그라운드 CCTV AI 시작 대기</span>
+    <span id="environment-history-status">환경 DB 기록 확인 중</span>
+    <span id="weather-status">기상 데이터 확인 중</span>
+    <span id="vworld-status">브이월드 확인 중</span>
+  </section>
+  <section class="summary">
+    <article><span>운영 CCTV</span><b id="camera-count">0</b><small>개</small></article>
+    <article><span>열린 CCTV</span><b id="open-count">0</b><small>개 · 제한 없음</small></article>
+    <article><span>최대 침수등급</span><b id="max-level">0</b><small>Level</small></article>
+    <article><span>고도 보정 최대수심</span><b id="max-depth">0</b><small>cm</small></article>
+  </section>
+
+  <section class="panel map-panel">
+    <div class="heading map-heading">
+      <div><p>POHANG VWORLD REAL 3D DIGITAL TWIN</p><h2>포항 브이월드 실제 3D 건물·CCTV·침수 분석</h2></div>
+      <div class="map-options">
+        <div class="map-engine-buttons" aria-label="지도 엔진">
+          <button id="engine-vworld3d" class="active">브이월드 실제 3D</button>
+          <button id="engine-analysis">침수 분석지도</button>
+        </div>
+        <div class="base-map-buttons analysis-control" aria-label="분석지도 배경">
+          <button id="base-vworld-base">브이월드 일반</button>
+          <button id="base-vworld-satellite">브이월드 영상</button>
+          <button id="base-vworld-hybrid" class="active">브이월드 하이브리드</button>
+          <button id="base-fallback">예비지도</button>
+        </div>
+        <label><input id="surface-toggle" type="checkbox" checked> 침수심 표시</label>
+        <label class="analysis-control"><input id="rain-toggle" type="checkbox" checked> 기상청 강수</label>
+        <label><input id="building-toggle" type="checkbox" checked> 브이월드 실제 건물</label>
+        <label><input id="marker-toggle" type="checkbox" checked> CCTV 표시</label>
+        <button id="terrain-mode" class="analysis-control">2D 전환</button>
+        <label class="terrain-range analysis-control">지형 <input id="terrain-exaggeration" type="range" min="0" max="2.5" step="0.1" value="1.25"></label>
+        <label class="terrain-range analysis-control">침수 강조 <input id="flood-exaggeration" type="range" min="1" max="20" step="1" value="8"></label>
+        <button id="fit-map" class="analysis-control">분석지도 포항 전체</button><button id="arrange-cctv">CCTV 자동 정렬</button><button id="focus-test-camera">테스트 CCTV</button>
+      </div>
+    </div>
+    <div class="map-wrap vworld-engine" id="map-wrap">
+      <iframe
+        id="vworld3d-frame"
+        src="/vworld3d?v=8.6.4"
+        title="포항 브이월드 실제 3D 건물 지도"
+        allow="fullscreen"
+      ></iframe>
+      <div id="map"></div>
+      <div id="cctv-window-layer" aria-live="polite"></div>
+      <aside class="map-side">
+        <div class="side-head"><h3>CCTV 목록</h3><span>동시 열기 제한 없음</span></div>
+        <div id="camera-list"></div>
+      </aside>
+      <div class="legend flood-depth-legend analysis-overlay">
+        <b>추정 침수심</b>
+        <span><i class="fd1"></i>1~12cm</span>
+        <span><i class="fd2"></i>12~35cm</span>
+        <span><i class="fd3"></i>35~60cm</span>
+        <span><i class="fd4"></i>60cm 이상</span>
+      </div>
+      <div class="rain-legend analysis-overlay">
+        <b>기상청 1시간 강수</b>
+        <span>0</span><i></i><span>30+ mm</span>
+      </div>
+      <div id="elevation-readout" class="elevation-readout analysis-overlay">침수 분석지도에서 지점을 클릭하면 해당 위치의 DEM 고도가 표시됩니다.</div><div id="rainfall-readout" class="rainfall-readout analysis-overlay">기상청 포항 강수 격자 대기 중</div>
+      <div class="surface-note analysis-overlay">실제 3D 건물: 브이월드 facility_build · 분석지도 침수심은 CCTV 단계·기상청 강수·DEM 고도를 결합한 관제용 추정치입니다.</div>
+    </div>
+  </section>
+
+  <section class="bottom-grid">
+    <section class="panel weather-panel">
+      <div class="heading">
+        <div><p>KMA REAL-TIME RAINFALL</p><h2>포항 AWS 매분 강수·500m 강수격자</h2></div>
+        <div class="weather-live-state">
+          <i id="weather-stream-dot"></i>
+          <span id="weather-stream-state">실시간 연결 중</span>
+          <span id="weather-updated"></span>
+        </div>
+      </div>
+      <div id="weather-card" class="weather-card">
+        <p class="empty">기상청 자료를 불러오는 중입니다.</p>
+      </div>
+      <div class="rain-chart-box">
+        <canvas id="rainfall-chart" aria-label="최근 매분 강수량과 초단기예보"></canvas>
+      </div>
+    </section>
+    <section class="panel water-level-panel">
+      <div class="heading">
+        <div><p>WATER LEVEL SENSOR</p><h2>도시·하천 수위계</h2></div>
+        <span id="water-level-updated"></span>
+      </div>
+      <div class="sensor-tabs" role="tablist" aria-label="수위계 종류">
+        <button id="sewer-tab" class="active" type="button" role="tab" aria-selected="true" aria-controls="sewer-panel">하수도 수위계</button>
+        <button id="river-tab" type="button" role="tab" aria-selected="false" aria-controls="river-panel">하천 수위계</button>
+      </div>
+      <div id="sewer-panel" class="sensor-tab-panel" role="tabpanel">
+        <div id="sewer-grid" class="sewer-grid level-grid"></div>
+      </div>
+      <div id="river-panel" class="sensor-tab-panel hidden" role="tabpanel">
+        <div id="river-grid" class="river-grid level-grid"></div>
+      </div>
+    </section>
+  </section>
+  <section class="panel flood-event-panel">
+    <div class="heading">
+      <div><p>FLOOD EVENT LOCATION &amp; LEVEL</p><h2>최근 침수 감지 지역·레벨</h2></div>
+      <span id="event-count" class="event-count">0건</span>
+    </div>
+    <div id="event-list" class="events"></div>
+  </section>
+</main>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="/static/level-colors.js?v=8.6.4"></script>
+<script src="/static/app.js?v=8.6.4"></script>
+</body>
+</html>

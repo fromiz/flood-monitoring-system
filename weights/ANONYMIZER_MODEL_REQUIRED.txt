@@ -1,0 +1,9 @@
+얼굴·번호판 전용 YOLO 가중치 안내
+
+기본 위치: weights/anonymizer_best.pt
+
+전용 가중치가 없을 때도 OpenCV Haar 보조 탐지기가 동작하지만,
+멀리 있는 얼굴과 한국 번호판 탐지 정확도는 전용 YOLO 모델보다 낮을 수 있습니다.
+
+첨부된 tools/realtime_anonymizer.py의 안내에 따라 dashcam_anonymizer 모델을 받아
+anonymizer_best.pt라는 이름으로 이 폴더에 넣으세요.

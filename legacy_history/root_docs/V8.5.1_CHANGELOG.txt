@@ -1,0 +1,32 @@
+V8.5.1 통합 관측이력 + 차량추적/다수결/모자이크 보정
+
+1. 환경 시계열 SQLite 저장
+- environmental_observations 신규 테이블
+- 강수량(60분), 하수 수위, 하천 수위를 관측시각 기준으로 자동 저장
+- 동일 sensor_type + sensor_id + observed_at 중복 저장 방지
+- 기본 60초 수집, 최대 365일 보관
+
+2. CCTV 이력 통합 검색
+- /api/history가 침수 단계 + 강수 + 하수 + 하천 이력을 한 번에 반환
+- CCTV 위치에서 가장 가까운 강수/하수/하천 관측 지점을 자동 선택
+- combined_points 제공
+- CCTV 창에 4개 시계열 그래프와 통합 표 표시
+
+3. 다수결 일관성 강화
+- 이력 버킷도 highest-level 방식이 아니라 차량 stage_votes 최빈값 사용
+- 동률은 낮은 단계 우선
+- 지도/목록/이력에서 희소한 고단계 1건이 다수 Lev0을 뒤집지 않음
+
+4. 차량 탐지/추적 강화
+- 차량 confidence 기본 0.15
+- 입력 해상도 기본 896, CPU 최대 768
+- AI 갱신 최소 간격 0.22초
+- LK optical flow + local template matching fallback
+- 작은/원거리 차량 특징점 부족 시 박스를 고정하지 않고 주변 template 추적
+- detector miss 최대 3회까지 짧게 track 유지
+
+5. 모자이크 오탐 완화
+- Haar 얼굴/번호판 검출 기준 강화
+- Haar는 같은 위치에서 2회 연속 확인된 경우만 모자이크
+- 번호판은 현재 추적 차량 내부에 있어야 표시
+- 큰 얼굴/번호판 hard-area guard 축소

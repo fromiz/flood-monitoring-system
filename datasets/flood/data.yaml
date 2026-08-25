@@ -1,0 +1,10 @@
+path: datasets/flood
+train: images/train
+val: images/val
+
+names:
+  0: flood_level_0
+  1: flood_level_1
+  2: flood_level_2
+  3: flood_level_3
+  4: flood_level_4

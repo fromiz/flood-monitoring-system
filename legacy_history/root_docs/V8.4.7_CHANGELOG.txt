@@ -1,0 +1,26 @@
+V8.4.7 - 브이월드 3D / 침수 분석지도 단일 DEM GeoJSON 통합
+
+핵심 변경
+- 침수 분석지도에서 사용하던 JavaScript 34x28 거리보간 침수면 계산을 제거했습니다.
+- 침수 분석지도와 브이월드 3D가 모두 /api/map/vworld-overlays의 Python DEM 결과를 사용합니다.
+- 대시보드 부모 페이지가 통합 오버레이 API를 1회 조회한 뒤 동일 payload를 MapLibre 분석지도와 브이월드 iframe에 전달합니다.
+- 따라서 같은 갱신 시점에는 두 지도에 전달되는 flood FeatureCollection이 완전히 동일합니다.
+- 강제 Lev3 테스트 ON/OFF도 부모 대시보드의 단일 요청 상태로 동기화됩니다.
+- 브이월드 새로고침 버튼도 부모의 통합 오버레이 갱신을 요청합니다.
+- DEM GeoJSON feature에 depth_m, elevation_m을 추가해 분석지도의 3D extrusion/팝업에서도 동일 데이터를 그대로 사용할 수 있게 했습니다.
+- 네트워크/DEM 오류 시 마지막 정상 침수면을 유지합니다.
+
+침수 계산 흐름
+CCTV AI -> Python TerrainFloodModel -> /api/map/vworld-overlays -> 동일 flood GeoJSON
+                                                       -> 침수 분석지도
+                                                       -> 브이월드 3D
+
+유지된 V8.4.6 수정
+- CCTV AI 레벨을 지도 레벨의 권위값으로 사용
+- Lev0를 강수만으로 Lev1 이상으로 승격하지 않음
+- 실제 침수 CCTV를 DEM seed로 사용
+- 동일 이름 CCTV의 stage 혼선 방지
+- 모자이크 face/license_plate 화이트리스트
+- 차량/도로 전체 모자이크 방지 크기·비율 필터
+- ANONYMIZER_BOX_SCALE 기본 1.08
+- CCTV 창 비의존 백그라운드 기록 저장

@@ -1,0 +1,17 @@
+V8.4.9 통합본
+
+- 첨부된 vehicle-tire-body 버전의 3단계 모델 파이프라인 통합
+  1) best.pt 차량 탐지
+  2) 차량 crop에서 tire_level.pt 침수 단계 판정
+  3) 타이어 미검출 차량만 car_flood_cls.pt 차체 fallback
+- 차량 박스 추적: 특징점 optical flow + forward/backward 검증 + RANSAC + 재연결
+- 차량 다수결 후 EMA(alpha=0.35): Lev0 5대 + Lev1 1대 => Lev0
+- 지도 최근 기록도 최대 6건 최빈값(동률 낮은 레벨 우선)
+- CCTV 창을 열지 않아도 백그라운드 추론/DB 저장 유지
+- 브이월드/침수 분석지도 동일 Python DEM flood GeoJSON 유지
+- DEM depth-grid smoothing + contour upscaling + 경계 smoothing 유지
+- 고도 확인 ON/OFF 버튼 제거
+- 침수 분석지도는 어느 지점을 클릭해도 현재 지도에서 DEM 고도 표시
+- 분석지도 CCTV/침수/강수 클릭 시 브이월드 3D로 강제 이동하지 않음
+- 얼굴/번호판 모자이크 과대영역 필터 유지
+- 첨부 모델 3개를 weights/best.pt, tire_level.pt, car_flood_cls.pt로 포함

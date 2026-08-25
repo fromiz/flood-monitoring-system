@@ -1,0 +1,10 @@
+V8.4.5 - CCTV AI / 침수심 지도 레벨 동기화
+
+- CCTV AI Lev0를 강수량 때문에 Lev1로 올리던 max(ai_level, rain_level) 제거
+- 지도 마커 stage/depth는 CCTV AI 결과를 단일 기준으로 사용
+- 강수 관측점 단독으로 침수 폴리곤을 생성하지 않도록 변경
+- 강수량/DEM은 실제 AI 침수 CCTV 주변의 확산 범위 보조에만 사용
+- DEM 깊이가 CCTV AI 레벨의 상위 색상 밴드로 넘어가지 않도록 단계별 상한 적용
+- 동일 이름 CCTV 간 DB 레벨 오염 방지를 위해 공공 CCTV는 camera_id 기준으로만 매칭
+- DEM 280m source merge / 6-source 제한으로 실제 침수 CCTV가 누락되던 문제 완화
+- MapLibre 분석지도에도 동일한 AI-authoritative 정책 적용

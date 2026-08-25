@@ -1,0 +1,33 @@
+POHANG FLOOD CONTROL V8.4.2
+
+1. 공개 CCTV 스트림 복구
+- OpenCV 연속 재생 실패 시 HLS 최신 세그먼트 직접 디코딩
+- 로컬 영상 경로를 프로젝트 루트 기준으로 해석
+- FFmpeg 열기/읽기 타임아웃 적용
+- 실패 피드에 검은 화면 대신 재연결 안내 JPEG 제공
+- /api/cctv/worker-status 추가
+
+2. 백그라운드 침수 추론·기록
+- CCTV 창을 열지 않아도 전체 포항 CCTV를 순환 점검
+- 기본 4개 작업자로 네트워크 프레임 수집 병렬화
+- YOLO 모델 추론 잠금 유지
+- 탐지 없음은 Lev0 정상값으로 기록 가능
+- DB details에 record_source=background 기록
+- /api/cctv/background-status 추가
+- 상단 상태표시에 순환 진행률·실패 개수 표시
+
+3. 판정 신선도와 DB 안정성
+- STAGE_STALE_SECONDS 이후 현재 지도 단계에서 제외
+- SQLite 동시 쓰기를 직렬화
+- SQLite busy timeout 30초 적용
+
+4. 설정
+BACKGROUND_CCTV_ENABLED=true
+BACKGROUND_CCTV_CYCLE_SECONDS=300
+BACKGROUND_CCTV_WORKERS=4
+BACKGROUND_CCTV_START_DELAY_SECONDS=8
+BACKGROUND_CCTV_MAX_CAMERAS=0
+BACKGROUND_CCTV_STORE_LEVEL0=true
+STAGE_STALE_SECONDS=1200
+CCTV_STREAM_FALLBACK_SECONDS=1.5
+CCTV_STREAM_ERROR_FRAME_SECONDS=4.0

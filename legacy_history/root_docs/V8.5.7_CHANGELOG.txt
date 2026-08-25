@@ -1,0 +1,26 @@
+V8.5.7 - live stream, tracking and KMA weather repair
+
+1. CCTV live delivery
+- FFmpeg read timeout reduced from 5.0s to 1.2s so a stalled HLS read reconnects promptly.
+- Removed repeated blocking capture.grab() calls from live HLS playback.
+- Network fallback now decodes one current frame instead of waiting for eight frames.
+
+2. Vehicle boxes
+- Restored Claude's lightweight one-pass Lucas-Kanade tracker for the live renderer.
+- Removed the per-frame backward-flow, affine RANSAC and template-matching load from the live path.
+- Stale detector results that waited too long behind another job are discarded instead of drawn.
+- Vehicle boxes are published before tire/body models are loaded or classified.
+
+3. AI priority
+- Browser CCTV inference now has priority over the 106-camera background scan.
+- A background job may finish its current model call but cannot start the next model stage while live CCTV is open.
+
+4. Weather
+- APIHub parser accepts CSV and whitespace rows with 10- or 12-digit observation times.
+- Temperature, humidity and wind independently reuse the latest valid value from the previous 90 minutes.
+- Missing minute metrics are filled from the official APIHub hourly AWS endpoint using the same auth key.
+- Added TA_AVG, HM_AVG and WS1_AVG aliases.
+
+5. Existing behaviour retained
+- CCTV/map markers, DEM flood-depth overlay, privacy masking and history remain included.
+- Stage consensus remains vehicle-count first; a count tie uses average confidence, and an exact confidence tie uses the higher stage.

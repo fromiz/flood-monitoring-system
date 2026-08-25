@@ -1,0 +1,580 @@
+:root{--bg:#06111c;--panel:#0a1a29;--panel2:#0e2639;--border:#294b64;--text:#eaf6ff;--muted:#96adbf;--accent:#58c8ff;--lv0:#42c889;--lv1:#315cff;--lv2:#7136d9;--lv3:#bd2caf;--lv4:#ff4298}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans KR",sans-serif}button,input{font:inherit}.topbar{height:72px;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;background:#071725;border-bottom:1px solid var(--border)}.brand{display:flex;align-items:center;gap:12px}.mark{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#183b52;color:#71dcff;font-size:25px;font-weight:900}.brand p,.heading p{margin:0;color:#62ccff;font-size:10px;letter-spacing:1.3px}.brand h1{font-size:20px;margin:3px 0 0}.header-info{display:flex;gap:18px;color:var(--muted);font-size:12px}main{padding:14px;max-width:1800px;margin:auto}.status-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.status-strip span{padding:8px 11px;border:1px solid var(--border);border-radius:999px;background:#0a1b2b;color:#9fb5c8;font-size:11px}.status-strip .ok{border-color:#267c68;color:#5ce0b0}.status-strip .warn{border-color:#8a6b27;color:#ffe066}.status-strip .error{border-color:#91374b;color:#ff7189}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.summary article{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 15px}.summary span{display:block;color:var(--muted);font-size:11px}.summary b{font-size:30px;margin-right:5px}.summary small{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}.heading{min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border)}.heading h2{margin:2px 0 0;font-size:17px}.map-heading{flex-wrap:wrap}.map-options{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}.map-options label{font-size:11px;color:var(--muted)}.map-options button{border:1px solid var(--border);background:#112b40;color:var(--text);padding:7px 10px;border-radius:7px;cursor:pointer}.terrain-range{display:flex;align-items:center;gap:6px}.terrain-range input{width:90px}.map-wrap{position:relative;height:720px;overflow:hidden;background:#07111b}.map-wrap #map{position:absolute;inset:0 310px 0 0}.map-side{position:absolute;top:0;right:0;bottom:0;width:310px;background:rgba(6,17,28,.97);border-left:1px solid var(--border);z-index:20;overflow:auto}.side-head{position:sticky;top:0;background:#091b2a;display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--border);z-index:2}.side-head h3{margin:0;font-size:14px}.side-head span{font-size:10px;color:var(--muted)}.camera-row{width:100%;border:0;border-bottom:1px solid #18364b;background:transparent;color:var(--text);padding:10px;display:grid;grid-template-columns:13px 1fr auto;gap:9px;text-align:left;align-items:center;cursor:pointer}.camera-row:hover,.camera-row.open{background:#12364e}.camera-row>i{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 2px #dceeff}.camera-row span b,.camera-row span small{display:block}.camera-row span b{font-size:12px}.camera-row span small{font-size:10px;color:var(--muted);margin-top:3px}.camera-row em{font-style:normal;font-size:10px;font-weight:800}.legend{position:absolute;z-index:12;left:12px;bottom:48px;padding:8px 11px;border-radius:9px;background:rgba(4,12,20,.86);display:flex;align-items:center;gap:9px;font-size:10px}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px}.lv0{background:var(--lv0)}.lv1{background:var(--lv1)}.lv2{background:var(--lv2)}.lv3{background:var(--lv3)}.lv4{background:var(--lv4)}.elevation-readout{position:absolute;left:12px;top:12px;z-index:12;background:rgba(4,12,20,.88);border:1px solid #31556f;border-radius:7px;padding:7px 9px;font-size:11px}.surface-note{position:absolute;left:12px;bottom:12px;z-index:12;background:rgba(4,12,20,.86);padding:6px 9px;border-radius:7px;color:#b8cad8;font-size:10px}#cctv-window-layer{position:absolute;inset:0 310px 0 0;pointer-events:none;z-index:30}.cctv-window{position:absolute;width:590px;height:620px;min-width:330px;min-height:260px;max-width:calc(100% - 10px);max-height:calc(100% - 10px);resize:both;overflow:hidden;display:flex;flex-direction:column;pointer-events:auto;background:rgba(5,15,24,.98);border:1px solid #4faada;border-radius:12px;box-shadow:0 16px 50px #000b}.cctv-window.focused{border-color:#a8e8ff;box-shadow:0 20px 70px #000}.cctv-window.maximized{left:5px!important;top:5px!important;width:calc(100% - 10px)!important;height:calc(100% - 10px)!important;resize:none}.cctv-window.minimized{height:46px!important;min-height:46px;resize:none}.cctv-window.minimized .cctv-body,.cctv-window.minimized .cctv-history{display:none}.cctv-head{height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:7px 8px 7px 12px;background:#0b2639;border-bottom:1px solid var(--border);cursor:move;user-select:none}.cctv-head p{font-size:9px;color:#5dd3ff;margin:0}.cctv-head h3{font-size:13px;margin:2px 0 0;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.window-actions{display:flex;gap:5px}.window-actions button{width:29px;height:27px;border:1px solid #41627a;border-radius:6px;background:#102f45;color:white;cursor:pointer}.cctv-body{position:relative;flex:1;min-height:170px;background:#02070b;overflow:hidden}.cctv-body .cctv-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;background:#02070b}.cctv-video-raw{z-index:1}.cctv-video-ai{z-index:2}.cctv-loading{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:#030910;color:#b8d5e7}.cctv-badge{position:absolute;z-index:5;left:10px;bottom:10px;display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;background:rgba(3,10,17,.84);border-radius:8px;padding:7px 9px}.cctv-badge b{font-size:18px}.cctv-badge span{font-size:11px;font-weight:800}.cctv-badge small{font-size:9px;color:#b7cbd9}.privacy-badge{position:absolute;z-index:5;right:10px;top:10px;background:rgba(3,10,17,.82);border:1px solid #43bb88;border-radius:999px;padding:5px 8px;color:#72e7b3;font-size:9px}.cctv-history{height:300px;flex:none;padding:8px 10px;background:#081824;border-top:1px solid var(--border);overflow:hidden}.cctv-history-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:4px}.cctv-history-status{color:#71d7ff}.cctv-chart-wrap{position:relative;height:165px}.cctv-chart-empty{position:absolute;inset:0;display:grid;place-items:center;color:#7893a7;font-size:10px;pointer-events:none}.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.weather-main{padding:18px}.weather-main b{font-size:45px}.weather-main span{font-size:18px}.weather-main p{color:var(--muted)}.sewer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px}.sewer-grid article{background:var(--panel2);border-radius:8px;padding:12px}.sewer-grid article b,.sewer-grid article span{display:block}.sewer-grid article span{font-size:20px;margin-top:8px}.events{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:14px}.events article{background:var(--panel2);border-radius:8px;padding:11px}.events span{display:block;color:var(--muted);font-size:11px;margin-top:5px}.empty{padding:14px;color:var(--muted)}.maplibregl-popup-content{background:#071725;color:#eaf6ff;border:1px solid #3d6680;border-radius:8px}.maplibregl-popup-close-button{color:white}.hidden{display:none!important}@media(max-width:1050px){.summary{grid-template-columns:1fr 1fr}.map-wrap{height:660px}.map-wrap #map{inset:0}.map-side{display:none}#cctv-window-layer{right:0}.cctv-window{width:min(500px,calc(100% - 10px))}.bottom-grid{grid-template-columns:1fr}}@media(max-width:650px){.header-info{display:none}.brand h1{font-size:16px}.summary{grid-template-columns:1fr 1fr}.map-options label:not(.terrain-range){display:none}.map-wrap{height:600px}.cctv-window{left:5px!important;width:calc(100% - 10px)!important;max-width:none}.legend{flex-wrap:wrap;right:8px}.surface-note{display:none}.events,.sewer-grid{grid-template-columns:1fr}}
+
+.cctv-history-presets{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin:6px 0;
+}
+.cctv-history-presets button,
+.cctv-history-range button{
+  border:1px solid #315a73;
+  border-radius:6px;
+  background:#0c2a3d;
+  color:#a9c8da;
+  padding:5px 8px;
+  font-size:10px;
+  cursor:pointer;
+}
+.cctv-history-presets button:hover,
+.cctv-history-presets button.active,
+.cctv-history-range button:hover{
+  border-color:#58c8ff;
+  background:#154460;
+  color:#eaf6ff;
+}
+.cctv-history-range{
+  display:grid;
+  grid-template-columns:1fr 1fr auto;
+  gap:6px;
+  align-items:end;
+  margin-bottom:6px;
+}
+.cctv-history-range label{
+  display:block;
+  min-width:0;
+}
+.cctv-history-range label span{
+  display:block;
+  margin-bottom:3px;
+  color:#89a7ba;
+  font-size:9px;
+}
+.cctv-history-range input{
+  display:block;
+  width:100%;
+  min-width:0;
+  height:29px;
+  border:1px solid #284b61;
+  border-radius:6px;
+  background:#061520;
+  color:#dcedf7;
+  padding:4px 6px;
+  font-size:10px;
+  color-scheme:dark;
+}
+.cctv-history-range button{
+  height:29px;
+  min-width:48px;
+}
+@media(max-width:650px){
+  .cctv-history-range{
+    grid-template-columns:1fr 1fr;
+  }
+  .cctv-history-range button{
+    grid-column:1 / -1;
+  }
+}
+
+
+/* V7.2 satellite digital twin */
+.base-map-buttons{
+  display:flex;
+  border:1px solid var(--border);
+  border-radius:7px;
+  overflow:hidden;
+}
+.base-map-buttons button{
+  border:0!important;
+  border-radius:0!important;
+  padding:7px 9px!important;
+}
+.base-map-buttons button.active{
+  background:#2b7299!important;
+  color:#fff;
+}
+.rainfall-readout{
+  position:absolute;
+  left:12px;
+  top:50px;
+  z-index:12;
+  background:rgba(4,12,20,.88);
+  border:1px solid #31556f;
+  border-radius:7px;
+  padding:7px 9px;
+  color:#70d8ff;
+  font-size:11px;
+}
+.flood-depth-legend{
+  bottom:55px;
+}
+.flood-depth-legend i{
+  border-radius:3px;
+}
+.fd1{background:var(--lv1)}
+.fd2{background:var(--lv2)}
+.fd3{background:var(--lv3)}
+.fd4{background:var(--lv4)}
+.rain-legend{
+  position:absolute;
+  z-index:12;
+  left:12px;
+  bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 9px;
+  border-radius:8px;
+  background:rgba(4,12,20,.88);
+  font-size:9px;
+}
+.rain-legend b{
+  margin-right:3px;
+}
+.rain-legend i{
+  display:block;
+  width:88px;
+  height:8px;
+  border-radius:999px;
+  background:linear-gradient(
+    90deg,
+    #61d3ff,
+    #376dff,
+    #7b3cdb,
+    #ed3aae
+  );
+}
+.weather-panel{
+  min-height:320px;
+}
+.weather-card{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:14px;
+  padding:14px 14px 8px;
+}
+.weather-primary{
+  display:grid;
+  grid-template-columns:auto auto;
+  align-content:center;
+  padding:14px;
+  border:1px solid #2d5871;
+  border-radius:10px;
+  background:#0d2940;
+}
+.weather-primary span{
+  grid-column:1/-1;
+  color:var(--muted);
+  font-size:11px;
+}
+.weather-primary b{
+  font-size:48px;
+  line-height:1;
+  margin-top:8px;
+}
+.weather-primary em{
+  align-self:end;
+  margin:0 0 5px 5px;
+  color:#80dfff;
+  font-style:normal;
+  font-size:18px;
+}
+.weather-primary small{
+  grid-column:1/-1;
+  margin-top:8px;
+  color:#73e3b3;
+}
+.weather-metrics{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.weather-metrics article{
+  padding:11px;
+  border-radius:9px;
+  background:var(--panel2);
+}
+.weather-metrics span,
+.weather-metrics b{
+  display:block;
+}
+.weather-metrics span{
+  color:var(--muted);
+  font-size:10px;
+}
+.weather-metrics b{
+  margin-top:6px;
+  font-size:18px;
+}
+.weather-key-required{
+  grid-column:1/-1;
+  padding:18px;
+  border:1px solid #8a6b27;
+  border-radius:10px;
+  background:#28220e;
+}
+.weather-key-required b{
+  color:#ffe066;
+}
+.weather-key-required p{
+  color:#d9c983;
+}
+.weather-key-required code{
+  display:block;
+  margin-top:8px;
+  padding:8px;
+  border-radius:6px;
+  background:#07111b;
+  color:#87dcff;
+}
+.weather-key-required.error-box{
+  border-color:#91374b;
+  background:#2d1219;
+}
+.rain-chart-box{
+  height:125px;
+  padding:0 14px 12px;
+}
+.maplibregl-canvas{
+  outline:none;
+}
+@media(max-width:650px){
+  .weather-card{
+    grid-template-columns:1fr;
+  }
+  .weather-primary{
+    grid-template-columns:auto 1fr;
+  }
+  .rainfall-readout{
+    right:8px;
+    width:auto;
+  }
+  .rain-legend{
+    display:none;
+  }
+}
+
+
+/* V7.3 KMA minute rainfall + SSE */
+.weather-live-state{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--muted);
+  font-size:10px;
+}
+.weather-live-state i{
+  display:block;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#6e8798;
+}
+.weather-live-state i.ok{
+  background:#42c889;
+  box-shadow:0 0 0 4px rgba(66,200,137,.12);
+}
+.weather-live-state i.connecting{
+  background:#ffd25a;
+  animation:weather-pulse 1.2s infinite;
+}
+.weather-live-state i.warn,
+.weather-live-state i.stale{
+  background:#ffb34f;
+}
+.weather-live-state i.error{
+  background:#ff4f68;
+}
+@keyframes weather-pulse{
+  50%{opacity:.35}
+}
+.weather-card{
+  grid-template-columns:150px 170px 1fr;
+}
+.weather-primary.live-rain{
+  border-color:#2c789e;
+}
+.weather-primary.hourly-rain{
+  border-color:#713d89;
+  background:#241735;
+}
+.weather-primary.hourly-rain em{
+  color:#ff9ad1;
+}
+.weather-error-line{
+  grid-column:1/-1;
+  padding:7px 9px;
+  border:1px solid rgba(255,79,104,.45);
+  border-radius:7px;
+  background:rgba(255,79,104,.08);
+  color:#ff9bac;
+  font-size:9px;
+}
+.rain-chart-box{
+  height:170px;
+}
+@media(max-width:900px){
+  .weather-card{
+    grid-template-columns:1fr 1fr;
+  }
+  .weather-metrics{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:650px){
+  .weather-card{
+    grid-template-columns:1fr;
+  }
+  .weather-metrics{
+    grid-column:auto;
+  }
+  .weather-live-state{
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+}
+
+
+/* V7.4 VWorld map controls */
+.base-map-buttons{
+  flex-wrap:wrap;
+}
+.base-map-buttons button{
+  white-space:nowrap;
+}
+#vworld-status.ok{
+  border-color:#3c8d70;
+  color:#75e0ae;
+}
+#vworld-status.warn{
+  border-color:#896f2d;
+  color:#ffd36a;
+}
+#vworld-status.error{
+  border-color:#8e3549;
+  color:#ff8da0;
+}
+
+
+/* V7.5 actual VWorld WebGL 3D buildings */
+.map-engine-buttons{
+  display:flex;
+  overflow:hidden;
+  border:1px solid #3a6078;
+  border-radius:7px;
+}
+.map-engine-buttons button{
+  border:0!important;
+  border-radius:0!important;
+}
+.map-engine-buttons button.active{
+  background:#23749a!important;
+  color:#fff;
+}
+#vworld3d-frame{
+  position:absolute;
+  inset:0 310px 0 0;
+  z-index:5;
+  width:auto;
+  height:auto;
+  border:0;
+  background:#06121e;
+}
+.map-wrap.vworld-engine #map{
+  visibility:hidden;
+  pointer-events:none;
+}
+.map-wrap.analysis-engine #vworld3d-frame{
+  display:none;
+}
+.map-wrap.vworld-engine .analysis-overlay{
+  display:none!important;
+}
+.analysis-control.engine-hidden{
+  display:none!important;
+}
+.map-wrap.vworld-engine .map-side{
+  background:rgba(6,17,28,.94);
+}
+.camera-row[data-local-test="true"]{
+  border-left:3px solid #45e3cf;
+  background:rgba(20,73,78,.32);
+}
+.camera-row.selected{
+  background:#164863;
+  box-shadow:inset 4px 0 0 #68dcff;
+}
+.camera-row.selected span b{
+  color:#9ceaff;
+}
+.camera-row.selected.open{
+  background:#19516f;
+}
+@media(max-width:1050px){
+  #vworld3d-frame{
+    inset:0;
+  }
+}
+
+
+/* V7.6 recent flood event location + level */
+.event-count{
+  padding:5px 9px;border:1px solid #3a6680;border-radius:999px;
+  color:#72d8ff;background:#0b2436;font-size:11px;
+}
+.events{grid-template-columns:repeat(3,minmax(0,1fr))}
+.event-card{
+  position:relative;width:100%;min-height:155px;overflow:hidden;
+  border:1px solid #294b64;border-left:5px solid var(--event-level-color);
+  border-radius:9px;padding:11px 12px;background:var(--panel2);
+  color:var(--text);text-align:left;cursor:pointer;
+}
+.event-card:hover,.event-card:focus-visible{
+  border-color:var(--event-level-color);background:#12334a;transform:translateY(-1px)
+}
+.event-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.event-level-badge{
+  display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;
+  background:var(--event-level-color);color:#06111c;font-size:11px;font-weight:900
+}
+.event-card time{color:var(--muted);font-size:9px}
+.event-card>b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px}
+.event-region{min-height:30px;margin:5px 0 8px;color:#c8e2f1;font-size:11px;line-height:1.4}
+.event-metrics{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}
+.event-metrics span{
+  margin:0;padding:5px 7px;border-radius:6px;background:rgba(4,15,24,.64);
+  color:#a8bfd0;font-size:10px
+}
+.event-metrics strong{color:var(--event-level-color)}
+.event-card>small{display:block;color:#7f9aad;font-size:9px}
+@media(max-width:1100px){.events{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.events{grid-template-columns:1fr}}
+
+
+/* V7.7 full VWorld viewport + CCTV/flood overlays */
+#vworld3d-frame{
+  position:absolute!important;
+  top:0!important;
+  left:0!important;
+  right:310px!important;
+  bottom:0!important;
+  display:block;
+  width:calc(100% - 310px)!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:500px!important;
+  z-index:15;
+  border:0;
+  background:#06121e;
+}
+@media(max-width:1050px){
+  #vworld3d-frame{
+    right:0!important;
+    width:100%!important;
+  }
+}
+
+
+/* V8.4.2: unlimited CCTV windows, automatic tiling, water-level tabs and map-level sync */
+.cctv-window.auto-arranged{min-width:0;min-height:0;max-width:590px!important;max-height:620px!important;resize:none;transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease}
+.cctv-window.auto-arranged.compact .cctv-history{display:none}
+.cctv-window.auto-arranged.compact .cctv-head h3{max-width:180px}
+.sensor-tabs{display:flex;gap:8px;padding:10px 14px 0;background:var(--panel)}
+.sensor-tabs button{flex:1;border:1px solid var(--border);border-radius:8px 8px 0 0;padding:9px 10px;background:#0b2031;color:var(--muted);cursor:pointer}
+.sensor-tabs button.active{border-color:#58c8ff;background:#12364e;color:#eaf6ff}
+.sensor-tab-panel{min-height:188px}
+.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px}
+.level-grid article{background:var(--panel2);border:1px solid transparent;border-radius:8px;padding:12px}
+.level-grid article.warn{border-color:#9b7a2c}
+.level-grid article.danger{border-color:#b83b56;background:#301624}
+.level-grid article b,.level-grid article span,.level-grid article small{display:block}
+.level-grid article span{font-size:20px;margin-top:8px}
+.level-grid article small{margin-top:5px;color:var(--muted);font-size:10px;line-height:1.45}
+#elevation-pick.active,#arrange-cctv.active{border-color:#67dcff;background:#1e678d}
+@media(max-width:650px){.level-grid{grid-template-columns:1fr}}
+
+.cctv-window.auto-arranged.micro .cctv-head{height:30px;padding:3px 5px 3px 7px}
+.cctv-window.auto-arranged.micro .cctv-head p{display:none}
+.cctv-window.auto-arranged.micro .cctv-head h3{font-size:9px;max-width:calc(100% - 55px)}
+.cctv-window.auto-arranged.micro .window-actions button{width:18px;height:20px;padding:0;font-size:10px}
+.cctv-window.auto-arranged.micro .window-actions button[data-act="min"],
+.cctv-window.auto-arranged.micro .window-actions button[data-act="max"]{display:none}
+.cctv-window.auto-arranged.micro .privacy-badge,
+.cctv-window.auto-arranged.micro .cctv-badge{display:none}
+
+/* V8.4.2 stream recovery and background inference status */
+.cctv-loading{
+  padding:24px;
+  text-align:center;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+
+/* V8.5.1 integrated flood/rain/sewer/river history */
+.cctv-window{height:720px}
+.cctv-history{height:395px;overflow:auto}
+.cctv-chart-wrap{height:185px}
+.cctv-history-env{display:flex;gap:6px;flex-wrap:wrap;margin:5px 0 6px}
+.cctv-history-env span{border:1px solid #284b61;border-radius:999px;background:#071a28;color:#94b2c4;padding:4px 7px;font-size:9px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cctv-history-env b{color:#eaf6ff;font-size:10px}
+.cctv-history-table-wrap{max-height:105px;overflow:auto;border:1px solid #1f4055;border-radius:6px;margin-top:6px;background:#06141f}
+.cctv-history-table{width:100%;border-collapse:collapse;font-size:9px;color:#b9cede}
+.cctv-history-table th{position:sticky;top:0;background:#0b2639;color:#eaf6ff;z-index:1}
+.cctv-history-table th,.cctv-history-table td{padding:4px 5px;border-bottom:1px solid rgba(67,105,130,.24);text-align:right;white-space:nowrap}
+.cctv-history-table th:first-child,.cctv-history-table td:first-child{text-align:left}
+.cctv-history-table tbody tr:hover{background:#0e2c40}
+@media(max-width:650px){.cctv-history{height:420px}.cctv-chart-wrap{height:170px}}
+
+
+/* V8.5.2: CCTV windows are viewport-level, not clipped by the map panel. */
+#cctv-window-layer{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  pointer-events:none!important;
+  z-index:10000!important;
+  overflow:visible!important;
+}
+#cctv-window-layer .cctv-window{
+  position:fixed!important;
+  max-width:calc(100vw - 10px)!important;
+  max-height:calc(100vh - 10px)!important;
+}
+#cctv-window-layer .cctv-window.maximized{
+  left:5px!important;top:5px!important;
+  width:calc(100vw - 10px)!important;
+  height:calc(100vh - 10px)!important;
+}
+/* Environmental observations stay in the table; the chart is flood-stage only. */
+.cctv-history-env{margin-bottom:5px}
+
+/* Keep diagnostic messages from turning the whole status row into a banner. */
+#model-status{max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* V8.5.22: arranged CCTV history must fit inside the window so its scrollbar
+   track and final rows are not clipped by the parent's overflow:hidden. */
+.cctv-body{
+  flex:1 1 220px;
+  min-height:110px;
+}
+.cctv-history{
+  flex:0 1 395px;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-gutter:stable;
+  overscroll-behavior:contain;
+}
+.cctv-window.auto-arranged:not(.compact) .cctv-body{
+  flex:1 1 45%;
+  min-height:100px;
+}
+.cctv-window.auto-arranged:not(.compact) .cctv-history{
+  flex:1 1 55%;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+}
+
+
+/* V8.5.22 focused CCTV compositor: isolate frequent JPEG updates from the
+   history/chart layout so browser repaint work does not stall video. */
+.cctv-body{contain:paint}
+.cctv-window.focused .cctv-video{transform:translateZ(0);backface-visibility:hidden}
+
+/* V8.5.24: one WebSocket feeds all CCTV canvases. Canvas keeps the last
+   decoded frame during reconnect, so a long-running window never flashes
+   black or disappears when the transport is recycled. */
+.cctv-video-canvas{z-index:3;object-fit:contain;image-rendering:auto}
