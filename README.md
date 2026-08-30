@@ -10,7 +10,7 @@
 | 학습 데이터 | 87,000장 직접 구축 · 연동 CCTV 106개 지정 |
 | 핵심 스택 | Python, PyTorch, Ultralytics(YOLO26s), MapLibre, GeoJSON, DEM, FastAPI |
 
-📄 **[포트폴리오 PDF 보기](./docs/마인드원 발표 자료.pdf)**
+📄 **[포트폴리오 PDF 보기](./docs/portfolio.pdf)**
 
 담당: **PM · 대시보드 개발** — MapLibre 3D 침수 분석 지도, 침수 지역 알림·시계열 조회,
 DEM 고도 결합 위험 분포 시각화, 기상청·브이월드 외부 API 연동
